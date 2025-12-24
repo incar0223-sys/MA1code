@@ -15,7 +15,7 @@
             font-family: 'Malgun Gothic', '맑은 고딕', Arial, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 20px;
+            padding: 15px;
         }
         
         .container {
@@ -37,7 +37,36 @@
         .subtitle {
             text-align: center;
             color: #666;
+            margin-bottom: 15px;
+        }
+        
+        .notice {
+            text-align: left;
+            color: #333;
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 12px 20px;
             margin-bottom: 30px;
+            font-size: 12px;
+            line-height: 1.3;
+        }
+        
+        .notice strong {
+            display: block;
+            text-align: left;
+            color: #dc3545;
+            margin-bottom: 6px;
+            font-size: 12px;
+        }
+        
+        .notice ol {
+            margin: 6px 0;
+            padding-left: 18px;
+        }
+        
+        .notice li {
+            margin-bottom: 4px;
         }
         
         .search-box {
@@ -175,14 +204,24 @@
 <body>
     <div class="container">
         <h1>MA1위촉접수 리스트 조회</h1>
-        <p class="subtitle">사번을 입력하여 위촉접수 정보를 검색하세요</p>
+        <p class="subtitle">★IM/KB/메트/푸본/미래/IBK/처브 조회가능</p>
+        
+        <div class="notice">
+            <strong>주의사항</strong>
+            <ol>
+                <li>보험사에 현재 접수된 리스트가 조회됩니다.</li>
+                <li>현재 조회된 리스트를 보고 추가 접수요청 불가!!</li>
+                <li>접수차수를 확인 후 위촉일을 확인 해 주세요.</li>
+                <li>현재 기준으로 1개월 전~ 3개월 까지를 기준으로 조회 가능합니다.</li>
+            </ol>
+        </div>
         
         <div class="search-box">
             <label for="searchInput">사번 검색:</label>
             <input 
                 type="text" 
                 id="searchInput" 
-                placeholder="사번을 정확히 입력하세요 (7자리)"
+                placeholder="사번을 정확히 입력하세요 (7자리) 입력후 ENTER 키를 눌러주세요"
                 onkeypress="if(event.key === 'Enter') { event.preventDefault(); filterTable(); }"
             />
             <button onclick="filterTable()">검색</button>
