@@ -153,6 +153,23 @@
             color: #999;
             font-size: 18px;
         }
+        
+        .initial-message {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+            font-size: 18px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .initial-message strong {
+            color: #667eea;
+            display: block;
+            margin-bottom: 10px;
+            font-size: 20px;
+        }
     </style>
 </head>
 <body>
@@ -181,7 +198,12 @@
         
         <div id="errorMessage" class="error" style="display: none;"></div>
         
-        <div id="tableContainer">
+        <div id="initialMessage" class="initial-message">
+            <strong>🔍 사번을 입력하여 검색하세요</strong>
+            위 입력창에 사번을 입력하면 해당 정보가 표시됩니다.
+        </div>
+        
+        <div id="tableContainer" style="display: none;">
             <table id="dataTable">
                 <thead>
                     <tr id="tableHeader"></tr>
@@ -287,17 +309,29 @@
             }
             
             const searchValue = document.getElementById('searchInput').value.trim().toLowerCase();
-            let filteredRows = allData.data;
+            const tableContainer = document.getElementById('tableContainer');
+            const initialMessage = document.getElementById('initialMessage');
             
-            if (searchValue) {
-                // 사번 컬럼에서 검색 (5번째 컬럼: 사번)
-                const 사번Header = allData.headers[4]; // 사번은 5번째 (인덱스 4)
-                filteredRows = allData.data.filter(row => {
-                    const 사번 = String(row[사번Header] || '').toLowerCase();
-                    return 사번.includes(searchValue);
-                });
+            // 검색값이 없으면 테이블 숨기고 초기 메시지 표시
+            if (!searchValue) {
+                tableContainer.style.display = 'none';
+                initialMessage.style.display = 'block';
+                updateResultCount(0);
+                return;
             }
             
+            // 검색값이 있으면 초기 메시지 숨기고 테이블 표시
+            initialMessage.style.display = 'none';
+            
+            // 사번 컬럼에서 검색 (5번째 컬럼: 사번)
+            const 사번Header = allData.headers[4]; // 사번은 5번째 (인덱스 4)
+            const filteredRows = allData.data.filter(row => {
+                const 사번 = String(row[사번Header] || '').toLowerCase();
+                return 사번.includes(searchValue);
+            });
+            
+            // 검색 결과가 있으면 테이블 표시
+            tableContainer.style.display = 'block';
             renderTable({ headers: allData.headers, data: filteredRows });
         }
 
@@ -326,8 +360,9 @@
                 }
                 
                 loadingMessage.style.display = 'none';
-                tableContainer.style.display = 'block';
-                filterTable();
+                // 초기 로드 시에는 테이블을 숨김 (검색 후에만 표시)
+                tableContainer.style.display = 'none';
+                updateResultCount(0);
             } catch (error) {
                 loadingMessage.style.display = 'none';
                 errorMessage.style.display = 'block';
