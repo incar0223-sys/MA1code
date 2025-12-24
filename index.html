@@ -198,12 +198,12 @@
         
         <div id="errorMessage" class="error" style="display: none;"></div>
         
-        <div id="initialMessage" class="initial-message">
+        <div id="initialMessage" class="initial-message" style="display: block;">
             <strong>🔍 사번을 입력하여 검색하세요</strong>
             위 입력창에 사번을 입력하면 해당 정보가 표시됩니다.
         </div>
         
-        <div id="tableContainer" style="display: none;">
+        <div id="tableContainer" style="display: none !important;">
             <table id="dataTable">
                 <thead>
                     <tr id="tableHeader"></tr>
@@ -317,6 +317,9 @@
                 tableContainer.style.display = 'none';
                 initialMessage.style.display = 'block';
                 updateResultCount(0);
+                // 테이블 헤더와 본문 비우기
+                document.getElementById('tableHeader').innerHTML = '';
+                document.getElementById('tableBody').innerHTML = '';
                 return;
             }
             
@@ -340,10 +343,12 @@
             const loadingMessage = document.getElementById('loadingMessage');
             const errorMessage = document.getElementById('errorMessage');
             const tableContainer = document.getElementById('tableContainer');
+            const initialMessage = document.getElementById('initialMessage');
             
             loadingMessage.style.display = 'block';
             errorMessage.style.display = 'none';
             tableContainer.style.display = 'none';
+            initialMessage.style.display = 'none';
             
             try {
                 const response = await fetch('MA위촉접수리스트_통합.csv');
@@ -360,9 +365,17 @@
                 }
                 
                 loadingMessage.style.display = 'none';
-                // 초기 로드 시에는 테이블을 숨김 (검색 후에만 표시)
+                // 초기 로드 시에는 테이블을 숨기고 초기 메시지만 표시
                 tableContainer.style.display = 'none';
+                initialMessage.style.display = 'block';
                 updateResultCount(0);
+                
+                // 테이블 헤더와 본문 모두 비우기
+                document.getElementById('tableHeader').innerHTML = '';
+                document.getElementById('tableBody').innerHTML = '';
+                
+                // 검색 입력창도 비우기
+                document.getElementById('searchInput').value = '';
             } catch (error) {
                 loadingMessage.style.display = 'none';
                 errorMessage.style.display = 'block';
