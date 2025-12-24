@@ -182,7 +182,7 @@
             <input 
                 type="text" 
                 id="searchInput" 
-                placeholder="사번을 입력하세요"
+                placeholder="사번을 정확히 입력하세요 (7자리)"
                 onkeyup="filterTable()"
             />
             <button onclick="filterTable()">검색</button>
@@ -327,10 +327,12 @@
             initialMessage.style.display = 'none';
             
             // 사번 컬럼에서 검색 (5번째 컬럼: 사번)
+            // 정확히 일치하는 사번만 검색 (부분 일치 제외)
             const 사번Header = allData.headers[4]; // 사번은 5번째 (인덱스 4)
             const filteredRows = allData.data.filter(row => {
-                const 사번 = String(row[사번Header] || '').toLowerCase();
-                return 사번.includes(searchValue);
+                const 사번 = String(row[사번Header] || '').trim().toLowerCase();
+                // 완전 일치만 허용 (대소문자 구분 없음)
+                return 사번 === searchValue;
             });
             
             // 검색 결과가 있으면 테이블 표시
