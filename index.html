@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MA1위촉접수 리스트 조회</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Malgun Gothic', '맑은 고딕', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+        }
+        
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 2em;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .search-box {
+            margin-bottom: 30px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .search-box label {
+            font-weight: bold;
+            color: #333;
+            min-width: 100px;
+        }
+        
+        .search-box input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .search-box button {
+            padding: 12px 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+        
+        .search-box button:hover {
+            transform: translateY(-2px);
+        }
+        
+        .result-info {
+            margin-bottom: 15px;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .result-info strong {
+            color: #667eea;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+            font-size: 18px;
+        }
+        
+        .error {
+            text-align: center;
+            padding: 40px;
+            color: #dc3545;
+            font-size: 18px;
+            background: #f8d7da;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: bold;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            white-space: nowrap;
+        }
+        
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        tbody tr:hover {
+            background-color: #f5f5f5;
+            transition: background-color 0.2s;
+        }
+        
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>MA1위촉접수 리스트 조회</h1>
+        <p class="subtitle">사번을 입력하여 위촉접수 정보를 검색하세요</p>
+        
+        <div class="search-box">
+            <label for="searchInput">사번 검색:</label>
+            <input 
+                type="text" 
+                id="searchInput" 
+                placeholder="사번을 입력하세요"
+                onkeyup="filterTable()"
+            />
+            <button onclick="filterTable()">검색</button>
+        </div>
+        
+        <div class="result-info">
+            검색 결과: <strong id="resultCount">0</strong>건
+        </div>
+        
+        <div id="loadingMessage" class="loading" style="display: none;">
+            데이터를 불러오는 중...
+        </div>
+        
+        <div id="errorMessage" class="error" style="display: none;"></div>
+        
+        <div id="tableContainer">
+            <table id="dataTable">
+                <thead>
+                    <tr id="tableHeader"></tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let csvData = '';
+        let allData = { headers: [], data: [] };
+
+        // CSV 데이터를 파싱하여 배열로 변환
+        function parseCSV(csv) {
+            const lines = csv.trim().split('\n');
+            if (lines.length === 0) {
+                return { headers: [], data: [] };
+            }
+            
+            const headers = lines[0].split(',').map(h => h.trim());
+            const data = [];
+            
+            for (let i = 1; i < lines.length; i++) {
+                if (lines[i].trim() === '') continue;
+                
+                // 쉼표로 분리하되, 따옴표 안의 쉼표는 무시
+                const values = [];
+                let current = '';
+                let inQuotes = false;
+                
+                for (let j = 0; j < lines[i].length; j++) {
+                    const char = lines[i][j];
+                    if (char === '"') {
+                        inQuotes = !inQuotes;
+                    } else if (char === ',' && !inQuotes) {
+                        values.push(current.trim());
+                        current = '';
+                    } else {
+                        current += char;
+                    }
+                }
+                values.push(current.trim());
+                
+                const row = {};
+                headers.forEach((header, index) => {
+                    row[header] = values[index] || '';
+                });
+                data.push(row);
+            }
+            
+            return { headers, data };
+        }
+
+        // 테이블 렌더링
+        function renderTable(data) {
+            const { headers, data: rows } = data;
+            const tableHeader = document.getElementById('tableHeader');
+            const tableBody = document.getElementById('tableBody');
+            
+            // 헤더 생성
+            tableHeader.innerHTML = '';
+            headers.forEach(header => {
+                const th = document.createElement('th');
+                th.textContent = header;
+                tableHeader.appendChild(th);
+            });
+            
+            // 데이터 행 생성
+            tableBody.innerHTML = '';
+            if (rows.length === 0) {
+                const tr = document.createElement('tr');
+                const td = document.createElement('td');
+                td.colSpan = headers.length;
+                td.className = 'no-results';
+                td.textContent = '검색 결과가 없습니다.';
+                tr.appendChild(td);
+                tableBody.appendChild(tr);
+            } else {
+                rows.forEach(row => {
+                    const tr = document.createElement('tr');
+                    headers.forEach(header => {
+                        const td = document.createElement('td');
+                        td.textContent = row[header] || '';
+                        tr.appendChild(td);
+                    });
+                    tableBody.appendChild(tr);
+                });
+            }
+            
+            updateResultCount(rows.length);
+        }
+
+        // 결과 개수 업데이트
+        function updateResultCount(count) {
+            document.getElementById('resultCount').textContent = count;
+        }
+
+        // 테이블 필터링
+        function filterTable() {
+            if (!allData.headers.length) {
+                return;
+            }
+            
+            const searchValue = document.getElementById('searchInput').value.trim().toLowerCase();
+            let filteredRows = allData.data;
+            
+            if (searchValue) {
+                // 사번 컬럼에서 검색 (5번째 컬럼: 사번)
+                const 사번Header = allData.headers[4]; // 사번은 5번째 (인덱스 4)
+                filteredRows = allData.data.filter(row => {
+                    const 사번 = String(row[사번Header] || '').toLowerCase();
+                    return 사번.includes(searchValue);
+                });
+            }
+            
+            renderTable({ headers: allData.headers, data: filteredRows });
+        }
+
+        // CSV 파일 로드
+        async function loadCSV() {
+            const loadingMessage = document.getElementById('loadingMessage');
+            const errorMessage = document.getElementById('errorMessage');
+            const tableContainer = document.getElementById('tableContainer');
+            
+            loadingMessage.style.display = 'block';
+            errorMessage.style.display = 'none';
+            tableContainer.style.display = 'none';
+            
+            try {
+                const response = await fetch('MA위촉접수리스트_통합.csv');
+                
+                if (!response.ok) {
+                    throw new Error('CSV 파일을 찾을 수 없습니다. MA위촉접수리스트_통합.csv 파일이 같은 폴더에 있는지 확인해주세요.');
+                }
+                
+                csvData = await response.text();
+                allData = parseCSV(csvData);
+                
+                if (allData.headers.length === 0) {
+                    throw new Error('CSV 파일이 비어있거나 형식이 올바르지 않습니다.');
+                }
+                
+                loadingMessage.style.display = 'none';
+                tableContainer.style.display = 'block';
+                filterTable();
+            } catch (error) {
+                loadingMessage.style.display = 'none';
+                errorMessage.style.display = 'block';
+                errorMessage.textContent = '오류: ' + error.message;
+                console.error('CSV 로드 오류:', error);
+            }
+        }
+
+        // 초기화
+        window.onload = function() {
+            loadCSV();
+        };
+    </script>
+</body>
+</html>
