@@ -183,7 +183,7 @@
                 type="text" 
                 id="searchInput" 
                 placeholder="사번을 정확히 입력하세요 (7자리)"
-                onkeyup="filterTable()"
+                onkeypress="if(event.key === 'Enter') { event.preventDefault(); filterTable(); }"
             />
             <button onclick="filterTable()">검색</button>
         </div>
