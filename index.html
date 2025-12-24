@@ -223,6 +223,14 @@
             transform: translateY(-2px);
         }
         
+        .refresh-btn {
+            background: #28a745 !important;
+        }
+        
+        .refresh-btn:hover {
+            background: #218838 !important;
+        }
+        
         .result-info {
             margin-bottom: 15px;
             color: #666;
@@ -342,6 +350,7 @@
                 onkeypress="if(event.key === 'Enter') { event.preventDefault(); filterTable(); }"
             />
             <button onclick="filterTable()">검색</button>
+            <button onclick="refreshData()" style="padding: 12px 20px; background: #28a745; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">새로고침</button>
         </div>
         
         <div class="result-info">
@@ -372,82 +381,94 @@
     <script>
         let csvData = '';
         let allData = { headers: [], data: [] };
+        let 사번Index = -1; // 사번 컬럼 인덱스를 미리 저장
 
-        // CSV 데이터를 파싱하여 배열로 변환
+        // CSV 데이터를 파싱하여 배열로 변환 (최적화 버전)
         function parseCSV(csv) {
+            const startTime = performance.now();
             const lines = csv.trim().split('\n');
             if (lines.length === 0) {
                 return { headers: [], data: [] };
             }
             
-            const headers = lines[0].split(',').map(h => h.trim());
+            // 헤더 파싱 최적화
+            const headerLine = lines[0];
+            const headers = headerLine.split(',').map(h => h.trim());
             const data = [];
+            const dataLength = lines.length;
+            const headerLength = headers.length;
             
-            for (let i = 1; i < lines.length; i++) {
-                if (lines[i].trim() === '') continue;
+            // 사번 컬럼 인덱스 찾기 (한 번만)
+            사번Index = headers.findIndex(h => h === '사번');
+            if (사번Index === -1) {
+                사번Index = 4; // 기본값 (5번째 컬럼)
+            }
+            
+            // CSV 파싱 최적화: 단순 split 사용 (따옴표 없는 경우)
+            for (let i = 1; i < dataLength; i++) {
+                const line = lines[i];
+                if (!line || line.trim() === '') continue;
                 
-                // 쉼표로 분리하되, 따옴표 안의 쉼표는 무시
-                const values = [];
-                let current = '';
-                let inQuotes = false;
+                // 빠른 파싱: 쉼표로 분리
+                const values = line.split(',');
+                const valuesLength = values.length;
                 
-                for (let j = 0; j < lines[i].length; j++) {
-                    const char = lines[i][j];
-                    if (char === '"') {
-                        inQuotes = !inQuotes;
-                    } else if (char === ',' && !inQuotes) {
-                        values.push(current.trim());
-                        current = '';
-                    } else {
-                        current += char;
-                    }
-                }
-                values.push(current.trim());
+                // 빈 줄 처리
+                if (valuesLength === 0 || (valuesLength === 1 && values[0].trim() === '')) continue;
                 
+                // 객체 생성 최적화 (trim 최소화)
                 const row = {};
-                headers.forEach((header, index) => {
-                    row[header] = values[index] || '';
-                });
+                for (let j = 0; j < headerLength; j++) {
+                    row[headers[j]] = (values[j] || '').trim();
+                }
                 data.push(row);
             }
+            
+            const endTime = performance.now();
+            console.log(`CSV 파싱 완료: ${data.length}행, 소요시간: ${(endTime - startTime).toFixed(2)}ms`);
             
             return { headers, data };
         }
 
-        // 테이블 렌더링
+        // 테이블 렌더링 (최적화 버전)
         function renderTable(data) {
             const { headers, data: rows } = data;
             const tableHeader = document.getElementById('tableHeader');
             const tableBody = document.getElementById('tableBody');
+            const headerLength = headers.length;
             
-            // 헤더 생성
-            tableHeader.innerHTML = '';
-            headers.forEach(header => {
-                const th = document.createElement('th');
-                th.textContent = header;
-                tableHeader.appendChild(th);
-            });
+            // 헤더 생성 (innerHTML 사용으로 최적화)
+            let headerHTML = '';
+            for (let i = 0; i < headerLength; i++) {
+                headerHTML += `<th>${headers[i]}</th>`;
+            }
+            tableHeader.innerHTML = headerHTML;
             
-            // 데이터 행 생성
+            // 데이터 행 생성 (DocumentFragment 사용으로 최적화)
             tableBody.innerHTML = '';
             if (rows.length === 0) {
                 const tr = document.createElement('tr');
                 const td = document.createElement('td');
-                td.colSpan = headers.length;
+                td.colSpan = headerLength;
                 td.className = 'no-results';
                 td.textContent = '검색 결과가 없습니다.';
                 tr.appendChild(td);
                 tableBody.appendChild(tr);
             } else {
-                rows.forEach(row => {
+                const fragment = document.createDocumentFragment();
+                const rowsLength = rows.length;
+                
+                for (let i = 0; i < rowsLength; i++) {
+                    const row = rows[i];
                     const tr = document.createElement('tr');
-                    headers.forEach(header => {
-                        const td = document.createElement('td');
-                        td.textContent = row[header] || '';
-                        tr.appendChild(td);
-                    });
-                    tableBody.appendChild(tr);
-                });
+                    let rowHTML = '';
+                    for (let j = 0; j < headerLength; j++) {
+                        rowHTML += `<td>${row[headers[j]] || ''}</td>`;
+                    }
+                    tr.innerHTML = rowHTML;
+                    fragment.appendChild(tr);
+                }
+                tableBody.appendChild(fragment);
             }
             
             updateResultCount(rows.length);
@@ -482,9 +503,9 @@
             // 검색값이 있으면 초기 메시지 숨기고 테이블 표시
             initialMessage.style.display = 'none';
             
-            // 사번 컬럼에서 검색 (5번째 컬럼: 사번)
+            // 사번 컬럼에서 검색 (인덱스 미리 저장된 값 사용)
             // 정확히 일치하는 사번만 검색 (부분 일치 제외)
-            const 사번Header = allData.headers[4]; // 사번은 5번째 (인덱스 4)
+            const 사번Header = allData.headers[사번Index];
             const filteredRows = allData.data.filter(row => {
                 const 사번 = String(row[사번Header] || '').trim().toLowerCase();
                 // 완전 일치만 허용 (대소문자 구분 없음)
@@ -509,13 +530,26 @@
             initialMessage.style.display = 'none';
             
             try {
-                const response = await fetch('MA위촉접수리스트_통합.csv');
+                const startTime = performance.now();
+                // 캐시 완전 무시: 타임스탬프 추가
+                const timestamp = new Date().getTime();
+                const response = await fetch(`MA위촉접수리스트_통합.csv?v=${timestamp}`, {
+                    cache: 'no-store', // 캐시 저장 안 함
+                    headers: {
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
+                    }
+                });
                 
                 if (!response.ok) {
                     throw new Error('CSV 파일을 찾을 수 없습니다. MA위촉접수리스트_통합.csv 파일이 같은 폴더에 있는지 확인해주세요.');
                 }
                 
                 csvData = await response.text();
+                const loadTime = performance.now();
+                console.log(`CSV 파일 로드 완료: ${(loadTime - startTime).toFixed(2)}ms`);
+                
                 allData = parseCSV(csvData);
                 
                 if (allData.headers.length === 0) {
@@ -542,6 +576,21 @@
             }
         }
 
+        // 데이터 새로고침 함수
+        function refreshData() {
+            const loadingMessage = document.getElementById('loadingMessage');
+            loadingMessage.style.display = 'block';
+            loadingMessage.textContent = '데이터를 새로 불러오는 중...';
+            
+            // 기존 데이터 초기화
+            csvData = '';
+            allData = { headers: [], data: [] };
+            document.getElementById('searchInput').value = '';
+            
+            // CSV 파일 다시 로드 (캐시 무시)
+            loadCSV();
+        }
+
         // 초기화
         window.onload = function() {
             loadCSV();
@@ -549,6 +598,7 @@
     </script>
 </body>
 </html>
+
 
 
 
