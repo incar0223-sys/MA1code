@@ -4,313 +4,2143 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MA1위촉접수 리스트 조회</title>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <style>
-        * {
+        /* ── Apple SkinKit Design Tokens ── */
+        :root {
+            --font-family:    "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, "Malgun Gothic", "맑은 고딕", sans-serif;
+            --font-display:   "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, "Malgun Gothic", "맑은 고딕", sans-serif;
+
+            /* Brand — 3-state */
+            --brand:          #0071E3;
+            --brand-hover:    #0076DF;
+            --brand-active:   #006EDB;
+            --brand-dark:     #2997FF;   /* 다크 배경 링크용 */
+
+            /* Surface */
+            --bg-page:        #F5F5F7;   /* Apple 시그니처 오프화이트 — 순백 아님 */
+            --bg-secondary:   #E8E8ED;
+            --bg-card:        #FFFFFF;
+            --bg-dark:        #1D1D1F;
+
+            /* Text */
+            --text:           #1D1D1F;   /* 따뜻한 다크 — 순흑 아님 */
+            --text-muted:     #6E6E73;
+            --text-on-dark:   #F5F5F7;
+
+            /* Border */
+            --border:         rgba(0,0,0,0.10);
+            --border-strong:  rgba(0,0,0,0.18);
+
+            /* Radius */
+            --radius-tag:     4px;
+            --radius-sm:      8px;
+            --radius-card:    18px;
+            --radius-lg:      28px;
+            --radius-pill:    980px;
+
+            /* Focus / SkinKit */
+            --sk-focus-color:         #0071E3;
+            --sk-focus-offset:        1px;
+            --sk-button-focus-offset: 3px;
+
+            /* Motion */
+            --ease-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+            /* 입체 버튼: 상단 광택 + 바닥 그림자 + 눌림 */
+            --btn-shine: inset 0 1px 0 rgba(255, 255, 255, 0.42);
+            --btn-shine-soft: inset 0 1px 0 rgba(255, 255, 255, 0.28);
+            --btn-edge: inset 0 -1px 0 rgba(0, 0, 0, 0.08);
+            --btn-ambient: 0 1px 2px rgba(0, 0, 0, 0.06);
+            --btn-raise: 0 4px 12px rgba(0, 0, 0, 0.12);
+            --btn-raise-hover: 0 6px 18px rgba(0, 0, 0, 0.16);
+            --btn-raise-brand: 0 4px 14px rgba(0, 113, 227, 0.32);
+            --btn-raise-brand-hover: 0 7px 22px rgba(0, 113, 227, 0.38);
+            --btn-raise-danger: 0 4px 14px rgba(255, 59, 48, 0.35);
+            --btn-raise-teal: 0 4px 14px rgba(0, 122, 107, 0.28);
+            --btn-raise-teal-hover: 0 7px 20px rgba(0, 122, 107, 0.34);
+            --btn-press: inset 0 2px 6px rgba(0, 0, 0, 0.2);
+
+            /* 상단 로고·필독 알약 동일 높이 (모바일에서만 덮어씀) */
+            --top-bar-pill-h: 38px;
+            /* 고정 헤더 아래 본문 시작 위치 */
+            --content-offset-top: 88px;
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        html { height: 100%; }
+        body {
+            font-family: var(--font-family);
+            font-weight: 400;
+            min-height: 100vh;
+            height: 100vh;
+            height: 100dvh;
             margin: 0;
-            padding: 0;
+            padding: 0 16px 28px;
+            background: var(--bg-page);
+            color: var(--text);
+            -webkit-font-smoothing: antialiased;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
             box-sizing: border-box;
         }
-        
-        body {
-            font-family: 'Malgun Gothic', '맑은 고딕', Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 15px;
+
+        /* ── 고정 상단 바 (로고 + 타이틀·안내 + 필독) ── */
+        .top-bar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 900;
+            min-height: 56px;
+            display: flex;
+            align-items: center;
+            padding: 8px 24px;
+            background: rgba(255, 255, 255, 0.82);
+            backdrop-filter: blur(16px) saturate(1.4);
+            -webkit-backdrop-filter: blur(16px) saturate(1.4);
+            border-bottom: 1px solid var(--border);
         }
-        
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-            padding: 30px;
+        .top-bar__logo {
+            height: var(--top-bar-pill-h);
+            width: auto;
+            object-fit: cover;
+            border-radius: var(--radius-pill);
+            overflow: hidden;
+            flex-shrink: 0;
+            box-sizing: border-box;
         }
-        
-        h1 {
-            color: #667eea;
-            margin-bottom: 10px;
+        .top-bar__center {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            min-width: 0;
+            padding: 0 8px;
+        }
+        .top-bar__title {
             text-align: center;
-            font-size: 2em;
+            font-family: var(--font-display);
+            font-size: 1.32rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: var(--text);
+            line-height: 1.2;
+            white-space: nowrap;
         }
-        
+        .title-br-mobile { display: none; }
+        .top-bar__warn {
+            font-size: 12px;
+            font-weight: 600;
+            color: #FF3B30;
+            letter-spacing: -0.01em;
+        }
+        .top-bar__actions {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        /* 상단·검색: 애플 기기 느낌 메탈 그레이 (밝은 알루미늄 ↔ 살짝 진한 티타늄) */
+        .top-bar__usage {
+            flex-shrink: 0;
+            height: var(--top-bar-pill-h);
+            padding: 0 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+            color: #2c2c2e;
+            border: 1px solid rgba(255, 255, 255, 0.45);
+            border-radius: var(--radius-pill);
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            font-family: var(--font-family);
+            background: linear-gradient(180deg, #e4e4e7 0%, #d2d2d6 22%, #bcbcc0 55%, #a8a8ae 100%);
+            box-shadow:
+                var(--btn-shine),
+                var(--btn-edge),
+                var(--btn-ambient),
+                var(--btn-raise);
+            transition: filter 180ms var(--ease-out), transform 180ms var(--ease-out), box-shadow 180ms var(--ease-out);
+        }
+        .top-bar__usage:hover  {
+            filter: brightness(1.05);
+            transform: translateY(-1px);
+            box-shadow:
+                var(--btn-shine),
+                var(--btn-edge),
+                var(--btn-ambient),
+                var(--btn-raise-hover);
+        }
+        .top-bar__usage:active {
+            filter: brightness(0.93);
+            transform: scale(0.97);
+            box-shadow: var(--btn-press), 0 1px 2px rgba(0, 0, 0, 0.06);
+        }
+        .top-bar__readme {
+            flex-shrink: 0;
+            height: var(--top-bar-pill-h);
+            padding: 0 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+            color: #FFFFFF;
+            border: 1px solid rgba(160, 30, 20, 0.35);
+            border-radius: var(--radius-pill);
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            font-family: var(--font-family);
+            background: linear-gradient(180deg, #ff5f56 0%, #FF3B30 42%, #e63228 100%);
+            box-shadow:
+                var(--btn-shine-soft),
+                var(--btn-edge),
+                var(--btn-ambient),
+                var(--btn-raise-danger);
+            transition: filter 180ms var(--ease-out), transform 180ms var(--ease-out), box-shadow 180ms var(--ease-out);
+        }
+        .top-bar__readme:hover  {
+            filter: brightness(1.06);
+            transform: translateY(-1px);
+            box-shadow:
+                var(--btn-shine-soft),
+                var(--btn-edge),
+                var(--btn-ambient),
+                0 6px 18px rgba(255, 59, 48, 0.42);
+        }
+        .top-bar__readme:active {
+            filter: brightness(0.92);
+            transform: scale(0.97);
+            box-shadow: var(--btn-press), 0 1px 2px rgba(0, 0, 0, 0.08);
+        }
+
+        /* ── 메인(헤더 아래): 카드 + 결과 스크롤 영역 ── */
+        .main-wrap {
+            flex: 1 1 auto;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            margin-top: var(--content-offset-top);
+            max-width: 1400px;
+            width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* ── 컨테이너(카드): 상단 컨트롤 고정 + 하단만 스크롤 ── */
+        .container {
+            flex: 1 1 auto;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            max-width: 100%;
+            margin: 0;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            box-shadow:
+                0 2px 8px rgba(0,0,0,0.06),
+                0 8px 32px rgba(0,0,0,0.08);
+            position: relative;
+        }
+        .container__controls {
+            flex-shrink: 0;
+            padding: 24px 36px 16px;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-card);
+        }
+        .container__results {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            padding: 12px 36px 32px;
+            background: var(--bg-card);
+        }
+        .container__controls .all-schedule-bar { margin-bottom: 12px; }
+        .container__controls .search-box { margin-bottom: 12px; }
+        .container__controls .result-info { margin-bottom: 0; }
+
+        /* ── 헤더 ── */
+        h1 {
+            font-family: var(--font-display);
+            color: var(--text);
+            margin-bottom: 4px;
+            text-align: center;
+            font-size: 1.55rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
         .subtitle {
             text-align: center;
-            color: #666;
-            margin-bottom: 15px;
-        }
-        
-        .notice {
-            text-align: left;
-            color: #333;
-            background: #fff3cd;
-            border: 1px solid #ffc107;
-            border-radius: 8px;
-            padding: 12px 20px;
-            margin-bottom: 30px;
-            font-size: 12px;
-            line-height: 1.3;
-        }
-        
-        .notice strong {
-            display: block;
-            text-align: left;
-            color: #dc3545;
-            margin-bottom: 6px;
-            font-size: 12px;
-        }
-        
-        .notice ol {
-            margin: 6px 0;
-            padding-left: 18px;
-        }
-        
-        .notice li {
-            margin-bottom: 4px;
+            color: var(--text-muted);
+            margin-bottom: 14px;
+            font-size: 12.5px;
         }
 
-        /* 검색 영역 스타일 */
-        .search-box {
-            margin-bottom: 30px;
-            display: flex;
-            gap: 10px;
-            align-items: center;
+        /* ── 필독 버튼 ── */
+        .readme-btn {
+            position: absolute; top: 16px; right: 18px;
+            padding: 7px 14px;
+            color: #FFFFFF;
+            border: 1px solid rgba(160, 30, 20, 0.35);
+            border-radius: var(--radius-pill);
+            cursor: pointer; font-size: 12px; font-weight: 600;
+            z-index: 10;
+            background: linear-gradient(180deg, #ff5f56 0%, #FF3B30 42%, #e63228 100%);
+            box-shadow: var(--btn-shine-soft), var(--btn-edge), var(--btn-ambient), var(--btn-raise-danger);
+            transition: filter 180ms var(--ease-out), transform 180ms var(--ease-out), box-shadow 180ms var(--ease-out);
         }
-        
-        .search-box label {
-            font-weight: bold;
-            color: #333;
-            min-width: 80px;
+        .readme-btn:hover    { filter: brightness(1.06); transform: translateY(-1px); box-shadow: var(--btn-shine-soft), var(--btn-edge), var(--btn-ambient), 0 6px 18px rgba(255, 59, 48, 0.42); }
+        .readme-btn:active   { filter: brightness(0.92); transform: scale(0.97); box-shadow: var(--btn-press), 0 1px 2px rgba(0,0,0,0.08); }
+
+        /* ── 전체일정 바 ── */
+        .all-schedule-bar { margin-bottom: 12px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .btn-all-schedule {
+            padding: 7px 18px;
+            color: #FFFFFF;
+            border: 1px solid rgba(0, 70, 160, 0.35);
+            border-radius: var(--radius-pill);
+            cursor: pointer; font-size: 13px; font-weight: 600;
+            background: linear-gradient(180deg, #1a8bff 0%, var(--brand) 45%, #0060c8 100%);
+            box-shadow: var(--btn-shine-soft), var(--btn-edge), var(--btn-ambient), var(--btn-raise-brand);
+            transition: filter 180ms var(--ease-out), transform 180ms var(--ease-out), box-shadow 180ms var(--ease-out);
         }
-        
-        .search-box input {
-            flex: 1;
-            padding: 12px 15px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-        }
-        
-        .search-box input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        
-        .search-box button {
-            padding: 12px 25px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
+        .btn-all-schedule:hover  { filter: brightness(1.06); transform: translateY(-1px); box-shadow: var(--btn-shine-soft), var(--btn-edge), var(--btn-ambient), var(--btn-raise-brand-hover); }
+        .btn-all-schedule:active { filter: brightness(0.93); transform: scale(0.97); box-shadow: var(--btn-press), 0 1px 2px rgba(0, 80, 180, 0.2); }
+
+        .btn-pre-submit {
+            padding: 7px 16px;
+            color: #FFFFFF;
+            border: 1px solid rgba(0, 90, 80, 0.35);
+            border-radius: var(--radius-pill);
             cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-            transition: transform 0.2s;
+            font-size: 13px;
+            font-weight: 600;
+            background: linear-gradient(180deg, #2eb8a8 0%, #0d9488 45%, #0a7669 100%);
+            box-shadow: var(--btn-shine-soft), var(--btn-edge), var(--btn-ambient), var(--btn-raise-teal);
+            transition: filter 180ms var(--ease-out), transform 180ms var(--ease-out), box-shadow 180ms var(--ease-out);
+        }
+        .btn-pre-submit:hover  { filter: brightness(1.06); transform: translateY(-1px); box-shadow: var(--btn-shine-soft), var(--btn-edge), var(--btn-ambient), var(--btn-raise-teal-hover); }
+        .btn-pre-submit:active { filter: brightness(0.93); transform: scale(0.97); box-shadow: var(--btn-press), 0 1px 2px rgba(0, 80, 70, 0.25); }
+
+        .schedule-month-bar {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            margin-bottom: 6px;
+        }
+        .schedule-month-badge {
+            font-size: 11.5px; color: var(--text-muted);
+            background: var(--bg-secondary);
+            border-radius: var(--radius-pill);
+            padding: 3px 11px;
+            font-weight: 600;
         }
 
-        /* 테이블 레이아웃 수정 핵심 코드 */
-        #tableContainer {
-            width: 100%;
-            overflow-x: auto;
-            margin-top: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        /* ── 검색: 한 줄 — 사번 결과가 있으면 사번칸은 7자리 폭으로 줄고, 보험사 블록이 옆에 자연스럽게 펼쳐짐 ── */
+        .search-box {
+            display: block;
+            margin-bottom: 12px;
         }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            table-layout: fixed; /* 컬럼 너비를 고정하여 화면에 꽉 차게 함 */
-            min-width: 1000px; /* 너무 좁아지지 않게 최소 너비 설정 */
-            background: white;
+        .search-row--single {
+            display: flex;
+            flex-wrap: nowrap;
+            align-items: center;
+            gap: 12px;
         }
-        
-        thead {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+        /* 사번 검색군: 라벨 + 입력 + 검색 + 초기화 (검색 전엔 행 전체, 검색 후엔 절반) */
+        .search-sabun-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1 1 100%;
+            min-width: 0;
         }
-        
-        th, td {
-            padding: 15px 10px;
-            text-align: center; /* 중앙 정렬로 균형감 확보 */
-            border-bottom: 1px solid #eee;
-            word-break: break-all;
-            font-size: 14px;
+        .search-sabun-group > label {
+            font-weight: 600;
+            color: var(--text);
+            font-size: 13px;
+            flex-shrink: 0;
+            min-width: 0;
+        }
+        .search-box.search-box--has-results .search-sabun-group { flex: 1 1 0; }
+        .search-input-sabun {
+            flex: 1 1 auto;
+            min-width: 0;
+            padding: 8px 14px;
+            border: 1.5px solid var(--border-strong);
+            border-radius: var(--radius-pill);
+            font-size: 13.5px;
+            font-family: var(--font-family);
+            font-variant-numeric: tabular-nums;
+            background: var(--bg-card);
+            color: var(--text);
+            transition: border-color 200ms, box-shadow 200ms;
+        }
+        .search-inline-company {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            flex: 1 1 0;
+            min-width: 0;
+            padding-left: 12px;
+            border-left: 1px solid var(--border);
+        }
+        .search-box.search-box--has-results .search-inline-company { display: flex; }
+        .search-inline-company > label {
+            font-weight: 600;
+            color: var(--text);
+            font-size: 13px;
+            flex-shrink: 0;
+            min-width: 0;
+        }
+        .search-input-company {
+            flex: 1 1 auto;
+            min-width: 0;
+            padding: 8px 14px;
+            border: 1.5px solid var(--border-strong);
+            border-radius: var(--radius-pill);
+            font-size: 13.5px;
+            font-family: var(--font-family);
+            background: var(--bg-card);
+            color: var(--text);
+            transition: border-color 200ms, box-shadow 200ms;
+        }
+        .search-input-sabun::placeholder,
+        .search-input-company::placeholder { color: var(--text-muted); }
+        .search-input-sabun:focus,
+        .search-input-company:focus {
+            outline: none;
+            border-color: var(--sk-focus-color);
+            box-shadow: 0 0 0 3px rgba(0,113,227,0.18);
+        }
+        /* 검색·초기화 알약: 같은 높이·글자 크기 (초기화 둘 동일, 검색도 동일 박스) */
+        .search-box .btn-pill-same {
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            min-height: 38px;
+            box-sizing: border-box;
+            border-radius: var(--radius-pill);
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+        .btn {
+            padding: 8px 18px;
+            border-radius: var(--radius-pill);
+            cursor: pointer; font-size: 13px; font-weight: 600;
+            font-family: var(--font-family);
+            transition: filter 180ms var(--ease-out), transform 180ms var(--ease-out), box-shadow 180ms var(--ease-out), background 180ms var(--ease-out);
         }
 
-        /* 컬럼별 너비 비율 조정 (중요) */
-        th:nth-child(1) { width: 10%; } /* 보험사 */
-        th:nth-child(2) { width: 8%; }  /* 접수차수 */
-        th:nth-child(3) { width: 22%; } /* 위촉지사명 */
-        th:nth-child(4) { width: 15%; } /* 위촉지사코드 */
-        th:nth-child(5) { width: 12%; } /* 사번 */
-        th:nth-child(6) { width: 10%; } /* 이름 */
-        th:nth-child(7) { width: 23%; } /* 비고 */
-
-        tbody tr:hover {
-            background-color: #f9f9ff;
+        .btn-primary {
+            color: #FFFFFF;
+            border: 1px solid rgba(0, 70, 160, 0.35);
+            background: linear-gradient(180deg, #1a8bff 0%, var(--brand) 45%, #0060c8 100%);
+            box-shadow: var(--btn-shine-soft), var(--btn-edge), var(--btn-ambient), var(--btn-raise-brand);
         }
+        .btn-primary:hover  { filter: brightness(1.06); transform: translateY(-1px); box-shadow: var(--btn-shine-soft), var(--btn-edge), var(--btn-ambient), var(--btn-raise-brand-hover); }
+        .btn-primary:active { filter: brightness(0.93); transform: scale(0.97); box-shadow: var(--btn-press), 0 1px 2px rgba(0, 80, 180, 0.2); }
+
+        .btn-reset {
+            color: #1d1d1f;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            background: linear-gradient(180deg, #c9c9ce 0%, #b0b0b6 30%, #98989e 70%, #86868b 100%);
+            box-shadow:
+                var(--btn-shine),
+                var(--btn-edge),
+                var(--btn-ambient),
+                var(--btn-raise);
+        }
+        .btn-reset:hover  { filter: brightness(1.06); transform: translateY(-1px); box-shadow: var(--btn-shine), var(--btn-edge), var(--btn-ambient), var(--btn-raise-hover); }
+        .btn-reset:active { filter: brightness(0.9); transform: scale(0.97); box-shadow: var(--btn-press), 0 1px 2px rgba(0, 0, 0, 0.08); }
 
         .result-info {
-            margin-bottom: 15px;
-            color: #666;
-            font-size: 14px;
+            margin-bottom: 10px;
+            color: var(--text-muted);
+            font-size: 12.5px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: baseline;
+            gap: 10px 14px;
         }
-        
-        .result-info strong {
-            color: #667eea;
+        .result-info strong { color: var(--brand); }
+        .result-info-hint {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            letter-spacing: -0.01em;
         }
-        
-        .loading, .error, .initial-message, .no-results {
+        .result-info-hint.is-off { display: none !important; }
+
+        /* ── 메인 테이블 ── */
+        #tableContainer {
+            width: 100%; overflow-x: auto;
+            border-radius: var(--radius-card);
+            border: 1px solid var(--border);
+        }
+        table {
+            width: 100%; border-collapse: collapse;
+            table-layout: fixed; min-width: 1000px;
+            background: transparent;
+        }
+        thead { background: var(--bg-page); }
+        /* 결과 영역 세로 스크롤 시 헤더 고정 + 입체 타이틀 */
+        #tableContainer thead th {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            font-family: var(--font-display);
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            color: #2c2c2e;
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.88);
+            background: linear-gradient(180deg, #fcfcfd 0%, #eceef3 48%, #e2e4ea 100%);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            border-right: 1px solid rgba(0, 0, 0, 0.06);
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.9),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.04),
+                0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        #tableContainer thead th:last-child { border-right: none; }
+        th {
+            padding: 10px 8px; text-align: center;
+            font-size: 11.5px; font-weight: 600;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border);
+            letter-spacing: 0.01em;
+        }
+        td {
+            padding: 10px 8px; text-align: center;
+            border-bottom: 1px solid var(--border);
+            word-break: break-all; font-size: 12.5px;
+            color: var(--text);
+        }
+        th:nth-child(1){width:9%} th:nth-child(2){width:13%} th:nth-child(3){width:19%}
+        th:nth-child(4){width:14%} th:nth-child(5){width:11%} th:nth-child(6){width:10%}
+        th:nth-child(7){width:18%} th:nth-child(8){width:6%}
+        tbody tr:hover { background: var(--bg-page); }
+        /* 접수차수 열: 알약 한 줄 유지 */
+        #tableContainer td:nth-child(2) {
+            white-space: nowrap;
             text-align: center;
-            padding: 40px;
-            border-radius: 8px;
-            margin-top: 20px;
         }
 
-        .loading { color: #667eea; font-size: 18px; }
-        .error { color: #dc3545; background: #f8d7da; }
-        .initial-message { color: #999; background: #f8f9fa; }
-        .initial-message strong { color: #667eea; display: block; margin-bottom: 10px; font-size: 20px; }
+        /* 정렬 가능한 컬럼 헤더 */
+        .th-sortable { cursor: pointer; user-select: none; transition: color 200ms var(--ease-out), filter 200ms var(--ease-out); }
+        #tableContainer .th-sortable:hover { color: #0a5a8a; filter: brightness(1.03); }
+        #sortArrow { font-size: 10px; margin-left: 2px; color: #2a8dbd; }
 
-        /* 모바일 반응형 */
+        /* ── 접수차수 뱃지 (한 줄·동일 너비 — td의 break-all 상속 방지) ── */
+        .badge-round {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+            width: 8rem;
+            min-width: 8rem;
+            max-width: 100%;
+            min-height: 26px;
+            padding: 4px 5px;
+            border-radius: var(--radius-pill);
+            font-size: 11px;
+            line-height: 1.15;
+            letter-spacing: -0.03em;
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+            word-break: keep-all;
+            vertical-align: middle;
+        }
+        .badge-latest {
+            background: linear-gradient(180deg, #f0f9ff 0%, #d8effc 42%, #c5e8fa 100%);
+            color: #164a63;
+            font-weight: 600;
+            border: 1px solid rgba(120, 190, 230, 0.55);
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.92),
+                inset 0 -1px 0 rgba(100, 170, 210, 0.12),
+                0 1px 2px rgba(80, 150, 200, 0.12);
+        }
+        .badge-old {
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border-strong);
+            font-weight: 400;
+        }
+
+        /* ── 상태 메시지 ── */
+        .loading,.error,.initial-message,.no-results {
+            text-align: center; padding: 26px 20px; border-radius: var(--radius-card); margin-top: 8px;
+        }
+        .loading { color: var(--brand); font-size: 14px; }
+        .error { color: #FF3B30; background: rgba(255,59,48,0.06); border: 1px solid rgba(255,59,48,0.18); border-radius: var(--radius-card); }
+        .initial-message { color: var(--text-muted); background: var(--bg-page); border: 1px solid var(--border); }
+        .initial-message strong { color: var(--text); display: block; margin-bottom: 6px; font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+
+        /* ── 일정 버튼 ── */
+        .schedule-btn {
+            padding: 5px 12px;
+            color: var(--brand);
+            border: 1px solid rgba(0, 113, 227, 0.2);
+            border-radius: var(--radius-pill);
+            cursor: pointer; font-size: 12.5px; font-weight: 600;
+            background: linear-gradient(180deg, #f2f2f7 0%, #e8e8ed 45%, #dcdce2 100%);
+            box-shadow: var(--btn-shine), var(--btn-edge), var(--btn-ambient), 0 2px 8px rgba(0, 113, 227, 0.12);
+            transition: filter 180ms var(--ease-out), transform 180ms var(--ease-out), box-shadow 180ms var(--ease-out);
+        }
+        .schedule-btn:hover { filter: brightness(1.04); transform: translateY(-1px); box-shadow: var(--btn-shine), var(--btn-edge), var(--btn-ambient), 0 4px 12px rgba(0, 113, 227, 0.18); }
+        .schedule-btn:active { filter: brightness(0.94); transform: scale(0.97); box-shadow: var(--btn-press), 0 1px 2px rgba(0, 0, 0, 0.06); }
+
+        /* ── 모달 공통 ── */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.45);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            z-index: 1000; justify-content: center; align-items: center;
+            padding: 16px;                  /* 모달이 화면 가장자리에 닿지 않도록 안전 여백 */
+        }
+        .modal-overlay.active { display: flex; }
+
+        .modal-title {
+            font-family: var(--font-display);
+            font-size: 16px; font-weight: 600;
+            letter-spacing: -0.01em;
+            color: var(--text);
+            margin-bottom: 18px; padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        /* 개별 인사일정 모달: 제목 + 재접수 안내 한 줄 영역 */
+        .modal-schedule-head {
+            margin-bottom: 18px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        .modal-schedule-head .modal-title-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 10px 14px;
+        }
+        .modal-schedule-head .modal-title {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+        .modal-title-stack {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        .modal-pre-submit-notice {
+            margin: 0;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: #0a5c52;
+            line-height: 1.55;
+            padding: 8px 11px;
+            background: rgba(13, 148, 136, 0.1);
+            border-radius: var(--radius-md);
+            border-left: 3px solid #0d9488;
+            max-width: 100%;
+        }
+        .modal-title-side-notice {
+            margin: 0;
+            font-size: 12px;
+            font-weight: 600;
+            color: #b42318;
+            line-height: 1.5;
+            text-align: right;
+            max-width: min(100%, 360px);
+        }
+        @media (max-width: 520px) {
+            .modal-title-side-notice { text-align: left; max-width: none; }
+        }
+        .modal-close {
+            display: block; margin: 20px auto 0; padding: 10px 36px;
+            color: #FFFFFF;
+            border: 1px solid rgba(0, 70, 160, 0.35);
+            border-radius: var(--radius-pill); cursor: pointer;
+            font-size: 14px; font-weight: 600;
+            font-family: var(--font-family);
+            background: linear-gradient(180deg, #1a8bff 0%, var(--brand) 45%, #0060c8 100%);
+            box-shadow: var(--btn-shine-soft), var(--btn-edge), var(--btn-ambient), var(--btn-raise-brand);
+            transition: filter 180ms var(--ease-out), transform 180ms var(--ease-out), box-shadow 180ms var(--ease-out);
+        }
+        .modal-close:hover  { filter: brightness(1.06); transform: translateY(-1px); box-shadow: var(--btn-shine-soft), var(--btn-edge), var(--btn-ambient), var(--btn-raise-brand-hover); }
+        .modal-close:active { filter: brightness(0.93); transform: scale(0.97); box-shadow: var(--btn-press), 0 1px 2px rgba(0, 80, 180, 0.2); }
+
+        .modal-close--danger {
+            border-color: rgba(160, 30, 20, 0.35);
+            background: linear-gradient(180deg, #ff5f56 0%, #FF3B30 42%, #e63228 100%);
+            box-shadow: var(--btn-shine-soft), var(--btn-edge), var(--btn-ambient), var(--btn-raise-danger);
+        }
+        .modal-close--danger:hover {
+            filter: brightness(1.06);
+            box-shadow: var(--btn-shine-soft), var(--btn-edge), var(--btn-ambient), 0 6px 18px rgba(255, 59, 48, 0.42);
+        }
+        .modal-close--danger:active { filter: brightness(0.92); box-shadow: var(--btn-press), 0 1px 2px rgba(0, 0, 0, 0.08); }
+
+        /* ── 개별 일정 모달 (전체일정 모달과 동일하게 가로 스크롤 허용 → 잘림 방지) ── */
+        .modal-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg); padding: 20px 16px;
+            min-width: 0; max-width: min(92vw, 900px); width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        .modal-schedule-hint {
+            font-size: 13px;
+            color: var(--text);
+            text-align: left;
+            margin: -8px 0 14px;
+            line-height: 1.65;
+            padding: 12px 14px;
+            background: var(--bg-page);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+        }
+        .modal-schedule-hint strong { color: var(--brand); font-weight: 700; }
+        .modal-table-wrap {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+        }
+        .modal-table { min-width: 560px; }
+        /* 접수차수 N차에 해당하는 표 행만 시각 강조 (문구에는 '강조' 등 안 씀) */
+        .modal-table tr.modal-row--focus td {
+            background: rgba(0, 113, 227, 0.10) !important;
+            box-shadow: inset 0 0 0 1px rgba(0, 113, 227, 0.35);
+        }
+        .modal-table {
+            width: 100%;
+            max-width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            table-layout: fixed;              /* 셀 폭을 모달 폭에 맞게 균등 분배 */
+        }
+        /* 5개 컬럼 폭 비율 — col / th / td 세 군데 동시 명시 (브라우저 호환) */
+        .modal-table col.col-round,
+        .modal-table th:nth-child(1),
+        .modal-table td:nth-child(1) { width: 12%; }
+        .modal-table col.col-fa,
+        .modal-table th:nth-child(2),
+        .modal-table td:nth-child(2) { width: 22%; }
+        .modal-table col.col-url,
+        .modal-table th:nth-child(3),
+        .modal-table td:nth-child(3) { width: 20%; }
+        .modal-table col.col-agree,
+        .modal-table th:nth-child(4),
+        .modal-table td:nth-child(4) { width: 24%; }
+        .modal-table col.col-date,
+        .modal-table th:nth-child(5),
+        .modal-table td:nth-child(5) { width: 22%; }
+
+        .modal-table th {
+            background: var(--bg-page); color: var(--text-muted);
+            padding: 8px 2px; text-align: center; font-weight: 600;
+            font-size: 10.5px; border-bottom: 1px solid var(--border);
+            line-height: 1.25;
+            word-break: keep-all;
+            overflow-wrap: anywhere;
+        }
+        .modal-table th:first-child { border-radius: var(--radius-sm) 0 0 0; }
+        .modal-table th:last-child  { border-radius: 0 var(--radius-sm) 0 0; }
+        .modal-table td {
+            padding: 9px 2px; text-align: center;
+            border-bottom: 1px solid var(--border); color: var(--text);
+            font-size: 11.5px;
+            word-break: keep-all;
+            overflow-wrap: anywhere;
+            line-height: 1.35;
+        }
+        .modal-table tbody tr:nth-child(odd)  td { background: var(--bg-page); }
+        .modal-table tbody tr:nth-child(even) td { background: var(--bg-card); }
+        .modal-no-data { text-align: center; padding: 20px; color: var(--text-muted); font-size: 13px; }
+
+        /* ── 필독 모달 ── */
+        .readme-modal-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg); padding: 30px 34px;
+            max-width: 560px; width: 92%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .readme-modal-box .modal-title { color: #FF3B30; border-bottom-color: rgba(255,59,48,0.18); }
+        .usage-modal-box .modal-title { color: var(--brand); border-bottom-color: rgba(0,113,227,0.18); }
+        .readme-section { margin-bottom: 18px; }
+        .readme-section-title { font-size: 13px; font-weight: 600; color: var(--brand); margin-bottom: 8px; }
+        .readme-section-title.warn { color: #FF3B30; }
+        .readme-section ol { padding-left: 20px; font-size: 13px; line-height: 1.9; color: var(--text-muted); }
+        .readme-section ol li b { color: var(--text); }
+        .readme-sublist { margin: 8px 0 0; padding-left: 18px; font-size: 12.5px; line-height: 1.75; list-style: disc; color: var(--text-muted); }
+        .readme-sublist li { margin-bottom: 4px; }
+        .readme-note { margin: 10px 0 0; font-size: 13px; font-weight: 600; color: var(--text); }
+
+        /* 선제출 보험사 URL 모달 */
+        .preurl-modal-box {
+            max-width: 620px;
+            width: 92%;
+            max-height: 86vh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .preurl-modal-box .modal-title { color: #0d9488; border-bottom-color: rgba(13, 148, 136, 0.22); }
+        .preurl-warn-red {
+            margin: -6px 0 16px;
+            padding: 11px 13px;
+            font-size: 12.5px;
+            font-weight: 600;
+            line-height: 1.72;
+            color: #b42318;
+            background: rgba(255, 59, 48, 0.07);
+            border-radius: var(--radius-md);
+            border-left: 3px solid #FF3B30;
+            word-break: keep-all;
+        }
+        .preurl-lead {
+            font-size: 13px;
+            line-height: 1.75;
+            color: var(--text-muted);
+            margin-bottom: 18px;
+        }
+        .preurl-lead strong { color: var(--text); }
+        .preurl-block { margin-bottom: 20px; font-size: 13px; line-height: 1.65; color: var(--text); }
+        .preurl-block h3 {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--text);
+            margin: 0 0 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--border);
+        }
+        .preurl-block p { margin: 6px 0 0; color: var(--text-muted); font-size: 12.5px; }
+        .preurl-block a {
+            display: inline-block;
+            margin-top: 4px;
+            color: var(--brand);
+            font-weight: 600;
+            word-break: break-all;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(0, 113, 227, 0.35);
+        }
+        .preurl-block a:hover { color: var(--brand-hover); border-bottom-color: var(--brand); }
+
+        /* ── 전체일정 모달 ── */
+        .all-modal-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg); padding: 30px;
+            max-width: 860px; width: 95%; max-height: 88vh;
+            display: flex; flex-direction: column;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        /* 월 전환 네비게이션 */
+        .month-nav { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+        .month-nav-btn {
+            width: 34px; height: 34px;
+            color: var(--text);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 50%; cursor: pointer; font-size: 16px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            background: linear-gradient(180deg, #f2f2f7 0%, #e4e4e9 45%, #d4d4da 100%);
+            box-shadow: var(--btn-shine), var(--btn-edge), var(--btn-ambient), var(--btn-raise);
+            transition: filter 180ms var(--ease-out), transform 180ms var(--ease-out), box-shadow 180ms var(--ease-out);
+        }
+        .month-nav-btn:hover  { filter: brightness(1.05); transform: translateY(-1px); box-shadow: var(--btn-shine), var(--btn-edge), var(--btn-ambient), var(--btn-raise-hover); }
+        .month-nav-btn:active { filter: brightness(0.93); transform: scale(0.96); box-shadow: var(--btn-press), 0 1px 2px rgba(0, 0, 0, 0.06); }
+        .month-nav-btn:disabled { opacity: 0.25; cursor: not-allowed; transform: none; filter: none; box-shadow: none; background: var(--bg-secondary); border: 1px solid var(--border); }
+        .month-label {
+            font-family: var(--font-display);
+            font-size: 14px; font-weight: 600;
+            letter-spacing: -0.01em;
+            color: var(--text);
+            min-width: 90px; text-align: center;
+        }
+        .month-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            cursor: pointer;
+            flex-shrink: 0;
+            background: linear-gradient(180deg, #f5f5f7 0%, #e0e0e5 100%);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: transform 160ms var(--ease-out), box-shadow 160ms, background 160ms, border-color 160ms;
+        }
+        .month-dot:hover { transform: scale(1.15); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 2px 6px rgba(0, 0, 0, 0.12); }
+        .month-dot.active {
+            background: linear-gradient(180deg, #1a8bff 0%, var(--brand) 50%, #0060c8 100%);
+            border-color: rgba(0, 60, 140, 0.45);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 2px 8px rgba(0, 113, 227, 0.35);
+        }
+
+        .all-modal-notice {
+            font-size: 12.5px;
+            font-weight: 600;
+            color: #FF3B30;
+            text-align: center;
+            line-height: 1.45;
+            margin: -6px 0 14px;
+            padding: 10px 12px;
+            background: rgba(255, 59, 48, 0.08);
+            border: 1px solid rgba(255, 59, 48, 0.22);
+            border-radius: var(--radius-sm);
+        }
+
+        .all-modal-filter { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+        .filter-tag {
+            padding: 5px 13px; border-radius: var(--radius-pill);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            background: linear-gradient(180deg, #fafafa 0%, #f0f0f2 100%);
+            color: var(--text-muted);
+            font-size: 12px; cursor: pointer;
+            font-family: var(--font-family);
+            box-shadow: var(--btn-shine), inset 0 -1px 0 rgba(0, 0, 0, 0.04), var(--btn-ambient), 0 2px 6px rgba(0, 0, 0, 0.06);
+            transition: filter 180ms var(--ease-out), transform 180ms var(--ease-out), box-shadow 180ms var(--ease-out), border-color 180ms var(--ease-out), color 180ms var(--ease-out);
+        }
+        .filter-tag:hover { border-color: var(--brand); color: var(--brand); transform: translateY(-1px); filter: brightness(1.02); box-shadow: var(--btn-shine), var(--btn-edge), var(--btn-ambient), var(--btn-raise); }
+        .filter-tag.active {
+            color: #FFFFFF;
+            font-weight: 600;
+            border: 1px solid rgba(0, 70, 160, 0.35);
+            background: linear-gradient(180deg, #1a8bff 0%, var(--brand) 45%, #0060c8 100%);
+            box-shadow: var(--btn-shine-soft), var(--btn-edge), var(--btn-ambient), var(--btn-raise-brand);
+        }
+        .filter-tag.active:hover { filter: brightness(1.06); box-shadow: var(--btn-shine-soft), var(--btn-edge), var(--btn-ambient), var(--btn-raise-brand-hover); }
+        .all-modal-table-wrap {
+            overflow-y: auto; flex: 1; border-radius: var(--radius-card);
+            border: 1px solid var(--border);
+        }
+        .all-modal-table { width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 560px; }
+        .all-modal-table thead { position: sticky; top: 0; z-index: 2; background: var(--bg-page); }
+        .all-modal-table th { padding: 10px 8px; color: var(--text-muted); text-align: center; font-size: 12px; font-weight: 600; border-bottom: 1px solid var(--border); }
+        .all-modal-table td { padding: 10px 8px; text-align: center; border-bottom: 1px solid var(--border); color: var(--text); word-break: keep-all; }
+        .all-modal-table td:nth-child(2) { white-space: nowrap; }
+        .all-modal-table tr.hidden-row { display: none; }
+
+        /* 전체일정 최근차수 강조 */
+        .all-modal-table tr.latest-row td { color: var(--text); }
+        .all-modal-table tr.old-row td { color: var(--text-muted); }
+
+        /* 보험사별 줄 구분 */
+        .row-color-0 td,.row-color-2 td,.row-color-4 td,.row-color-6 td { background: var(--bg-page); }
+        .row-color-1 td,.row-color-3 td,.row-color-5 td,.row-color-7 td { background: var(--bg-card); }
+
+        /* 스크롤바 */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-page); }
+        ::-webkit-scrollbar-thumb { background: #C7C7CC; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #AEAEB2; }
+
         @media (max-width: 768px) {
-            .container { padding: 15px; }
-            .search-box { flex-direction: column; align-items: stretch; }
-            h1 { font-size: 1.5em; }
+            :root { --top-bar-pill-h: 34px; --content-offset-top: 78px; }
+            .top-bar { padding: 6px 12px; }
+            .top-bar__title {
+                font-size: 1rem;
+                line-height: 1.18;
+                white-space: normal;
+                word-break: keep-all;
+            }
+            .title-br-mobile { display: inline; }
+            .top-bar__warn { font-size: 11px; }
+            .top-bar__usage { padding: 0 10px; font-size: 11px; }
+            .top-bar__readme { padding: 0 12px; font-size: 11px; }
+            .container__controls { padding: 16px 14px 12px; }
+            .container__results { padding: 10px 14px 20px; }
+            .search-row--single { flex-wrap: wrap; gap: 8px; }
+            .search-sabun-group,
+            .search-box.search-box--has-results .search-sabun-group,
+            .search-inline-company {
+                flex: 1 1 100%;
+                width: 100%;
+                min-width: 0;
+            }
+            .search-inline-company {
+                margin-left: 0;
+                padding-left: 0;
+                border-left: none;
+                border-top: 1px solid var(--border);
+                padding-top: 8px;
+                margin-top: 2px;
+            }
+            .search-box .btn-pill-same {
+                padding: 8px 14px;
+                font-size: 12.5px;
+                min-height: 36px;
+            }
+
+            /* ── 모바일: 보험사 검색칸 숨김 + 사번 결과 안내 박스 노출 ── */
+            .search-inline-company { display: none !important; }
+            .result-info-hint { display: none !important; }
+            #mobileSearchSummary {
+                display: none;
+                margin: 4px 0 10px;
+                padding: 9px 12px;
+                font-size: 12.5px;
+                font-weight: 600;
+                color: #0a4f70;
+                background: #eaf4fb;
+                border: 1px solid #cfe5f3;
+                border-left: 3px solid #2a8dbd;
+                border-radius: var(--radius-md);
+                line-height: 1.5;
+                word-break: keep-all;
+            }
+            #mobileSearchSummary[data-active="1"] { display: block; }
+            #mobileSearchSummary strong { color: var(--text); }
+
+            /* ── 모바일 결과 표: 보험사 / 접수차수 / 일정 3개 컬럼만 노출 ── */
+            #tableContainer { overflow-x: hidden; }
+            #tableContainer table { min-width: 0; width: 100%; table-layout: fixed; }
+            #tableContainer thead th:nth-child(3),
+            #tableContainer thead th:nth-child(4),
+            #tableContainer thead th:nth-child(5),
+            #tableContainer thead th:nth-child(6),
+            #tableContainer thead th:nth-child(7),
+            #tableBody td:nth-child(3),
+            #tableBody td:nth-child(4),
+            #tableBody td:nth-child(5),
+            #tableBody td:nth-child(6),
+            #tableBody td:nth-child(7) { display: none !important; }
+            #tableBody td.no-results { display: table-cell !important; }
+
+            #tableContainer thead th:nth-child(1),
+            #tableBody td:nth-child(1) { width: 40% !important; padding: 8px 4px; word-break: keep-all; }
+            #tableContainer thead th:nth-child(2),
+            #tableBody td:nth-child(2) { width: 34% !important; padding: 8px 4px; }
+            #tableContainer thead th:nth-child(8),
+            #tableBody td:nth-child(8) { width: 26% !important; padding: 8px 4px; }
+            #tableContainer thead th { font-size: 12px; padding: 9px 4px; }
+            #tableBody td { font-size: 12.5px; }
+            .badge-round {
+                width: auto;
+                min-width: 4.4rem;
+                max-width: 100%;
+                padding: 4px 6px;
+                font-size: 10.5px;
+                letter-spacing: -0.04em;
+            }
+
+            h1 { font-size: 1.5rem; }
+            .modal-overlay { padding: 8px; }
+            .modal-box { min-width: 0; padding: 14px 8px; width: 100%; }
+            .readme-modal-box, .all-modal-box { min-width: unset; padding: 16px; }
+            .readme-btn { top: 16px; right: 16px; padding: 7px 14px; font-size: 12px; }
+
+            /* 모바일에서도 5컬럼이 한눈에 보이도록 폰트/패딩 추가 축소 */
+            .modal-table th { font-size: 9.5px;  padding: 6px 1px; line-height: 1.2; }
+            .modal-table td { font-size: 10.5px; padding: 7px 1px; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>MA1위촉접수 리스트 조회</h1>
-        <p class="subtitle">★동양,총무코드제외 조회가능</p>
-        
-        <div class="notice">
-            <strong>주의사항 필독 *FA배포 금지*</strong>
-            <ol>
-                <li>위촉접수 조회리스트는 센터원과 파트너 총무와의 원할한 업무진행을 위한 자료이며 사용인원이 많아지면 제한 될 수 있습니다.</li>
-                <li>보험사에 접수된 위촉리스트가 조회됩니다. 추가접수를 위한 자료가 아닙니다. 접수요청 불가!!</li>
-                <li>접수차수를 확인 후 위촉일을 IIMS 전산에서 확인. 현재 기준으로 1개월전 ~ 3개월 리스트 조회 가능합니다.</li>
-                <li>업데이트는 수시 진행 중입니다. 실시간 반영이 아니니 참고만 부탁드립니다. </li>
-            </ol>
+<!-- 고정 상단 바: 로고 + 타이틀·안내 + 사용법·필독 -->
+<header class="top-bar">
+    <img src="로고_투명.png" alt="로고" class="top-bar__logo" />
+    <div class="top-bar__center">
+        <span class="top-bar__title">MA1 위촉접수<br class="title-br-mobile" /> 리스트 조회</span>
+        <span class="top-bar__warn">★ 동양·총무코드 조회 불가</span>
+    </div>
+    <div class="top-bar__actions">
+        <button type="button" class="top-bar__usage" onclick="showUsage()">📋 사용법</button>
+        <button type="button" class="top-bar__readme" onclick="showReadme()">⚠️ 필독</button>
+    </div>
+</header>
+
+<div class="main-wrap">
+<div class="container">
+    <div class="container__controls">
+        <div class="schedule-month-bar">
+            <span class="schedule-month-badge" id="scheduleMonthBadge">일정 로딩 중...</span>
         </div>
-        
-        <div class="search-box">
-            <label for="searchInput">사번 검색:</label>
-            <input 
-                type="text" 
-                id="searchInput" 
-                placeholder="사번 7자리를 입력 후 ENTER를 눌러주세요"
-                onkeypress="if(event.key === 'Enter') { filterTable(); }"
-            />
-            <button onclick="filterTable()">검색</button>
-            <button onclick="refreshData()" style="background: #28a745;">새로고침</button>
+        <div class="all-schedule-bar">
+            <button type="button" class="btn-all-schedule" onclick="showAllSchedule()">📋 보험사 전체일정 확인</button>
+            <button type="button" class="btn-pre-submit" onclick="showPreSubmitUrlModal()">🔗 선제출 보험사 URL</button>
         </div>
-        
+
+        <div class="search-box" id="searchBox">
+            <div class="search-row search-row--single">
+                <div class="search-sabun-group">
+                    <label for="searchInput">사번 검색</label>
+                    <input type="text" id="searchInput" class="search-input-sabun" maxlength="12" inputmode="numeric" autocomplete="off"
+                        placeholder="사번 7자리를 입력 후 ENTER 또는 검색"
+                        onkeypress="if(event.key==='Enter') filterTable()" />
+                    <button type="button" class="btn btn-primary btn-pill-same" onclick="filterTable()">검색</button>
+                    <button type="button" class="btn btn-reset btn-pill-same" onclick="resetSabunSearch()">사번 초기화</button>
+                </div>
+                <div class="search-inline-company" id="searchInlineCompany">
+                    <label for="companyFilterInput">보험사</label>
+                    <input type="text" id="companyFilterInput" class="search-input-company" placeholder="일부 입력"
+                        onkeypress="if(event.key==='Enter') filterTable({ skipAnalytics: true })" />
+                    <button type="button" class="btn btn-primary btn-pill-same" onclick="filterTable({ skipAnalytics: true })">검색</button>
+                    <button type="button" class="btn btn-reset btn-pill-same" onclick="resetCompanyFilter()">보험사 초기화</button>
+                </div>
+            </div>
+        </div>
+
         <div class="result-info">
-            검색 결과: <strong id="resultCount">0</strong>건
+            <span>검색 결과: <strong id="resultCount">0</strong>건</span>
+            <span class="result-info-hint is-off" id="resultInfoHint">사번을 검색 후 보험사를 조회하세요</span>
         </div>
-        
-        <div id="loadingMessage" class="loading" style="display: none;">데이터를 불러오는 중...</div>
-        <div id="errorMessage" class="error" style="display: none;"></div>
-        
+        <div class="mobile-search-summary" id="mobileSearchSummary" hidden></div>
+    </div>
+
+    <div class="container__results">
+        <div id="loadingMessage" class="loading" style="display:none;">데이터를 불러오는 중...</div>
+        <div id="errorMessage"  class="error"   style="display:none;"></div>
         <div id="initialMessage" class="initial-message">
             <strong>🔍 사번을 입력하여 검색하세요</strong>
             위 입력창에 사번을 입력하면 해당 정보가 표시됩니다.
         </div>
-        
-        <div id="tableContainer" style="display: none;">
-            <table id="dataTable">
+
+        <div id="tableContainer" style="display:none;">
+            <table>
                 <thead>
-                    <tr id="tableHeader">
+                    <tr>
                         <th>보험사</th>
-                        <th>접수차수</th>
-                        <th>위촉지사명</th>
-                        <th>위촉지사코드</th>
-                        <th>사번</th>
-                        <th>이름</th>
-                        <th>비고</th>
+                        <th class="th-sortable" id="thRound" onclick="toggleSort()" title="클릭하여 정렬 방향 전환">
+                            접수차수 <span id="sortArrow">▼</span>
+                        </th>
+                        <th>위촉지사명</th><th>위촉지사코드</th>
+                        <th>사번</th><th>이름</th><th>비고</th><th>일정</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody"></tbody>
             </table>
         </div>
     </div>
+</div>
+</div>
 
-    <script>
-        let allData = [];
-        let headers = ["보험사", "접수차수", "위촉지사명", "위촉지사코드", "사번", "이름", "비고"];
+<!-- 개별 인사일정 모달 -->
+<div id="scheduleModal" class="modal-overlay" onclick="if(event.target===this) closeModal('scheduleModal')">
+    <div class="modal-box">
+        <div class="modal-schedule-head">
+            <div class="modal-title-row">
+                <div class="modal-title-stack">
+                    <div class="modal-title" id="modalTitle">📅 인사일정</div>
+                    <p class="modal-pre-submit-notice" id="modalPreSubmitNotice" hidden></p>
+                </div>
+                <p class="modal-title-side-notice">위촉 재접수자는 서류마감(FA)일을 꼭 참고해서 발송해주시기 바랍니다.</p>
+            </div>
+        </div>
+        <div class="modal-schedule-hint" id="modalScheduleHint" hidden></div>
+        <div class="modal-table-wrap">
+            <table class="modal-table">
+                <colgroup>
+                    <col class="col-round" />
+                    <col class="col-fa" />
+                    <col class="col-url" />
+                    <col class="col-agree" />
+                    <col class="col-date" />
+                </colgroup>
+                <thead>
+                    <tr><th>차수</th><th>서류마감<br>(FA)</th><th>URL발송</th><th>전자동의<br>마감</th><th>위촉일</th></tr>
+                </thead>
+                <tbody id="modalBody"></tbody>
+            </table>
+        </div>
+        <button class="modal-close" onclick="closeModal('scheduleModal')">닫기</button>
+    </div>
+</div>
 
-        // CSV 로드 (캐시 방지)
-        async function loadCSV() {
-            const loading = document.getElementById('loadingMessage');
-            const initial = document.getElementById('initialMessage');
-            loading.style.display = 'block';
-            initial.style.display = 'none';
+<!-- 선제출 보험사 URL 모달 -->
+<div id="preSubmitUrlModal" class="modal-overlay" onclick="if(event.target===this) closeModal('preSubmitUrlModal')">
+    <div class="readme-modal-box preurl-modal-box">
+        <div class="modal-title">&lt;생명보험사 위촉 선제출 URL&gt;</div>
+        <p class="preurl-warn-red">*신규 협회등록자의 경우, 협회등록 서류(동양) 제출일에 맞춰 URL을 제출해 주시기 바랍니다. 너무 이른 시점에 제출하시면 위촉일 전에 제출 기록이 만료·삭제되어 정상 처리가 되지 않을 수 있습니다.</p>
+        <p class="preurl-lead">
+            <strong>KB라이프생명, 메트라이프, 신한라이프, 하나생명</strong><br />
+            위 4개의 보험사는 위촉 진행 시 따로 링크 발송이 되지 않는 고정 URL입니다.<br />
+            URL 미제출 시 서류 재접수 및 위촉일 지연이 발생하오니, 협회등록 예정 FA 및 재신청자 FA분들이 제출할 수 있도록 안내 부탁드립니다.
+        </p>
 
+        <div class="preurl-block">
+            <h3>◆ KB라이프생명 (KB생명+푸르덴셜생명)</h3>
+            <a href="http://id.kblife.co.kr/gafp/75400" target="_blank" rel="noopener noreferrer">http://id.kblife.co.kr/gafp/75400</a>
+        </div>
+
+        <div class="preurl-block">
+            <h3>◆ 메트라이프</h3>
+            <a href="https://brand.metlife.co.kr/ga/appt/selectMoblieCert.do" target="_blank" rel="noopener noreferrer">https://brand.metlife.co.kr/ga/appt/selectMoblieCert.do</a>
+        </div>
+
+        <div class="preurl-block">
+            <h3>◆ 신한라이프</h3>
+            <p>① 모바일 접속</p>
+            <a href="https://ga.shinhanlife.co.kr:11043/mw/srhdjgp020m.mdv" target="_blank" rel="noopener noreferrer">https://ga.shinhanlife.co.kr:11043/mw/srhdjgp020m.mdv</a>
+            <p>② PC 접속 (하단 모바일 위촉 QR 접속)</p>
+            <a href="https://ga.shinhanlife.co.kr" target="_blank" rel="noopener noreferrer">https://ga.shinhanlife.co.kr</a>
+        </div>
+
+        <div class="preurl-block" style="margin-bottom:8px;">
+            <h3>◆ 하나생명 — 협회등록 후 제출</h3>
+            <p>① 모바일 접속</p>
+            <a href="https://sales.hanalife.co.kr/ga/mo/MCM00007005M.do" target="_blank" rel="noopener noreferrer">https://sales.hanalife.co.kr/ga/mo/MCM00007005M.do</a>
+            <p>② PC 접속 (하단 모바일 QR코드로 접속)</p>
+            <a href="https://ga.hanalife.co.kr/" target="_blank" rel="noopener noreferrer">https://ga.hanalife.co.kr/</a>
+        </div>
+
+        <button type="button" class="modal-close" onclick="closeModal('preSubmitUrlModal')">닫기</button>
+    </div>
+</div>
+
+<!-- 사용법 모달 -->
+<div id="usageModal" class="modal-overlay" onclick="if(event.target===this) closeModal('usageModal')">
+    <div class="readme-modal-box usage-modal-box">
+        <div class="modal-title">📋 사용법 안내</div>
+        <div class="readme-section" style="margin-bottom:0;">
+            <ol>
+                <li>아래 입력창에 <b>사번 7자리</b> 입력 후 검색 버튼 클릭 또는 ENTER</li>
+                <li>사번 조회 후 <b>보험사</b> 칸에 일부만 입력해 좁히기(ENTER로 적용). <b>보험사 초기화</b>는 해당 사번의 전체 목록으로 되돌립니다.</li>
+                <li><b>사번 초기화</b>는 입력·목록을 비우고 데이터를 다시 불러옵니다.</li>
+                <li>조회된 결과에서 <b>📅 버튼</b> 클릭 → 해당 보험사 인사일정 확인 (서류마감FA / URL발송 / 전자동의마감 / 위촉일)</li>
+                <li><b>보험사 전체일정 확인</b> 버튼 클릭 → 전체 보험사 일정 한눈에 확인</li>
+            </ol>
+        </div>
+        <button type="button" class="modal-close" onclick="closeModal('usageModal')">닫기</button>
+    </div>
+</div>
+
+<!-- 필독 모달 (주의사항) -->
+<div id="readmeModal" class="modal-overlay" onclick="if(event.target===this) closeModal('readmeModal')">
+    <div class="readme-modal-box">
+        <div class="modal-title">⚠️ 필독 — 주의사항</div>
+        <div class="readme-section">
+            <div class="readme-section-title warn">🚫 주의사항 필독 — FA배포 금지</div>
+            <ol>
+                <li>위촉접수 조회리스트는 센터원과 파트너 총무와의 원활한 업무진행을 위한 자료입니다.</li>
+                <li>확정된 리스트이며 기존 차수에 추가접수를 위한 자료가 아닙니다. 접수요청 불가!!</li>
+                <li>접수차수를 확인후 위촉예정일을 조회할 수 있습니다. 당일기준 약 2~3개월 전 접수 리스트 조회 가능합니다.</li>
+                <li>업데이트는 상시 되고있으며 실시간 접수목록이 반영되지는 않습니다.</li>
+                <li>URL 발송일 및 위촉 일정은 보험사의 사정에 의하여 지연될 수 있습니다.</li>
+                <li>재 위촉 진행시 생명보험 협회등록 당시 정보와 변동이 있을경우 꼭 파트너담당 센터원에게 공유 해주셔야 합니다.<br />ex)협회등록이후 IIMS 연락처 변경 / 위촉지사 변경</li>
+            </ol>
+        </div>
+        <div class="readme-section" style="margin-bottom:0;">
+            <div class="readme-section-title warn">🚫 접수리스트에 없는 경우</div>
+            <ul class="readme-sublist">
+                <li>협회등록진행자의 경우 영업지원팀에서 일부 일괄로 진행해 주는 경우</li>
+                <li>보험사/MA센터/영업지원팀 전체 협의 후 진행하는 경우</li>
+                <li>★★센터로 위촉신청서를 제출하지 않은 경우</li>
+            </ul>
+            <p class="readme-note">리스트에 조회되지 않으니 참고 부탁드립니다.</p>
+        </div>
+        <button type="button" class="modal-close modal-close--danger" onclick="closeModal('readmeModal')">확인</button>
+    </div>
+</div>
+
+<!-- 전체일정 모달 -->
+<div id="allScheduleModal" class="modal-overlay" onclick="if(event.target===this) closeModal('allScheduleModal')">
+    <div class="all-modal-box">
+        <div class="modal-title" id="allModalTitle">📋 보험사 전체 인사일정</div>
+
+        <!-- 월 전환 네비게이션 -->
+        <div class="month-nav">
+            <button class="month-nav-btn" id="prevMonthBtn" onclick="changeMonth(-1)" title="이전 달 (←)">&#8592;</button>
+            <span class="month-label" id="allModalMonthLabel"></span>
+            <button class="month-nav-btn" id="nextMonthBtn" onclick="changeMonth(1)" title="다음 달 (→)">&#8594;</button>
+            <span style="flex:1;"></span>
+            <span id="monthDotWrap" style="display:flex;gap:6px;align-items:center;"></span>
+        </div>
+
+        <p class="all-modal-notice">동양생명, 총무코드 접수 조회불가 IIMS를 통해 확인가능</p>
+
+        <div class="all-modal-filter" id="allModalFilter"></div>
+        <div class="all-modal-table-wrap">
+            <table class="all-modal-table">
+                <thead>
+                    <tr><th>보험사</th><th>차수</th><th>서류마감(FA)</th><th>URL발송</th><th>전자동의마감</th><th>위촉일</th></tr>
+                </thead>
+                <tbody id="allModalBody"></tbody>
+            </table>
+        </div>
+        <button class="modal-close" onclick="closeModal('allScheduleModal')">닫기</button>
+    </div>
+</div>
+
+<script>
+    var allData = [];
+    var scheduleDataList = [];   // 로드된 모든 월 데이터
+    var monthLabels      = [];   // 각 월 레이블
+    var currentMonthIdx  = 0;
+    var currentFilter    = '전체';
+    var scheduleMonth    = '';
+    var sortDesc         = true; // 접수차수 정렬: true = 최근이 위(내림차순)
+
+    /* ── GA4(선택): 검색 횟수 대략 집계 — GitHub Pages 배포 후 GA4 스트림에서 이벤트명 sabun_search 확인
+       측정 ID는 GA 관리자 → 데이터 스트림에서 복사 (형식: G-XXXXXXXXXX). 비워 두면 아무 것도 로드하지 않음 */
+    var GA4_MEASUREMENT_ID = 'G-7H83LGPDT1';
+
+    var _ga4LoadStarted = false;
+    function ensureGa4Script() {
+        if (!GA4_MEASUREMENT_ID || _ga4LoadStarted) return;
+        _ga4LoadStarted = true;
+        window.dataLayer = window.dataLayer || [];
+        window.gtag = window.gtag || function() { window.dataLayer.push(arguments); };
+        var s = document.createElement('script');
+        s.async = true;
+        s.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(GA4_MEASUREMENT_ID);
+        document.head.appendChild(s);
+        window.gtag('js', new Date());
+        window.gtag('config', GA4_MEASUREMENT_ID);
+    }
+
+    /* 사번 검색 실행 시 1회(정렬 토글로 인한 filterTable 재호출은 제외) */
+    function trackSabunSearchEvent(resultCount, queryLen) {
+        if (!GA4_MEASUREMENT_ID) return;
+        try {
+            ensureGa4Script();
+            window.gtag('event', 'sabun_search', {
+                result_count: resultCount,
+                query_length: queryLen
+            });
+        } catch (e) {}
+    }
+
+    /* ─────────────────────────────────────────
+       일정 자동 로드
+       — GitHub에 올라간 인사일정 파일을 현재 기준 ±2개월 범위에서 자동 매칭
+       1순위: 인사일정_목록.json (파일명 인덱스) + ±2개월 필터
+       2순위: 날짜 기반 추정 (-2 ~ +2개월)
+    ───────────────────────────────────────── */
+    async function loadSchedule() {
+        var fileList = await fetchFileList();  // null 이면 날짜 추정
+
+        var candidates = fileList
+            ? fileList.map(function(f) {
+                var label = f.replace(/\.json$/i, '')           // "2026년_05월_인사일정"
+                             .replace(/_인사일정$/, '')          // "2026년_05월"
+                             .replace(/_/g, ' ')                 // "2026년 05월"
+                             .replace(/0(\d)월/, '$1월');        // "2026년 5월"
+                return { file: f, label: label };
+              }).filter(withinRange)             // 목록에서도 ±2개월만 사용
+            : buildDateCandidates();
+
+        var loaded = [];
+        for (var i = 0; i < candidates.length; i++) {
             try {
-                const response = await fetch(`MA위촉접수리스트_통합.csv?v=${new Date().getTime()}`);
-                if (!response.ok) throw new Error('파일을 찾을 수 없습니다.');
-                
-                const text = await response.text();
-                const lines = text.trim().split('\n');
-                
-                allData = lines.slice(1).map(line => {
-                    const values = line.split(',');
-                    return values.map(v => v.trim());
-                });
+                var res = await fetch(candidates[i].file + '?v=' + Date.now());
+                if (res.ok) {
+                    var data = await res.json();
+                    if (data.schedules && Object.keys(data.schedules).length > 0) {
+                        loaded.push({
+                            schedules: data.schedules,
+                            label: candidates[i].label
+                        });
+                    }
+                }
+            } catch(e) {}
+        }
 
-                loading.style.display = 'none';
-                initial.style.display = 'block';
-            } catch (err) {
-                loading.style.display = 'none';
-                const errorDiv = document.getElementById('errorMessage');
-                errorDiv.style.display = 'block';
-                errorDiv.textContent = '오류: ' + err.message;
+        if (loaded.length === 0) {
+            document.getElementById('scheduleMonthBadge').textContent = '일정 없음';
+            return;
+        }
+
+        // 날짜 레이블 기준 오름차순 정렬
+        loaded.sort(function(a, b) {
+            return labelToDate(a.label) - labelToDate(b.label);
+        });
+
+        scheduleDataList = loaded.map(function(l) { return l.schedules; });
+        monthLabels      = loaded.map(function(l) { return l.label; });
+
+        // 현재 월에 가장 가까운 인덱스를 기본값으로
+        currentMonthIdx = closestMonthIdx();
+
+        scheduleMonth = monthLabels[currentMonthIdx];
+        updateBadge();
+    }
+
+    /* 인사일정_목록.json 에서 파일명 배열을 가져온다 */
+    async function fetchFileList() {
+        try {
+            var res = await fetch('인사일정_목록.json?v=' + Date.now());
+            if (!res.ok) return null;
+            var data = await res.json();
+            // 형식: { "files": ["2026년_04월_인사일정.json", "2026년_05월_인사일정.json"] }
+            if (Array.isArray(data.files) && data.files.length > 0) return data.files;
+            return null;
+        } catch(e) { return null; }
+    }
+
+    /* 날짜 기반 후보 생성: 현재 기준 -2개월 ~ +2개월 (총 5개월) */
+    function buildDateCandidates() {
+        var now = new Date();
+        var list = [];
+        for (var offset = -2; offset <= 2; offset++) {
+            var d = new Date(now.getFullYear(), now.getMonth() + offset, 1);
+            var y = d.getFullYear();
+            var m = String(d.getMonth() + 1).padStart(2, '0');
+            list.push({
+                file:  y + '년_' + m + '월_인사일정.json',
+                label: y + '년 ' + Number(m) + '월'
+            });
+        }
+        return list;
+    }
+
+    /* "2026년 5월" → Date 객체 (정렬용) */
+    function labelToDate(label) {
+        var m = label.match(/(\d{4})년\s*(\d{1,2})월/);
+        if (!m) return new Date(0);
+        return new Date(parseInt(m[1]), parseInt(m[2]) - 1, 1);
+    }
+
+    /* 후보가 현재 기준 ±2개월 범위 내인지 확인 (인사일정_목록.json 사용 시 필터) */
+    function withinRange(cand) {
+        var d = labelToDate(cand.label);
+        if (!d || d.getTime() === 0) return false;
+        var now = new Date();
+        var diffMonth = (d.getFullYear() - now.getFullYear()) * 12
+                      + (d.getMonth() - now.getMonth());
+        return diffMonth >= -2 && diffMonth <= 2;
+    }
+
+    /* 오늘 날짜와 가장 가까운 월 인덱스 — 현재 월 우선 매칭 */
+    function closestMonthIdx() {
+        var now = new Date();
+        var nowKey = now.getFullYear() * 12 + now.getMonth();
+
+        // 1순위: 현재 월과 정확히 일치
+        for (var i = 0; i < monthLabels.length; i++) {
+            var d = labelToDate(monthLabels[i]);
+            if (d.getFullYear() * 12 + d.getMonth() === nowKey) return i;
+        }
+        // 2순위: 가장 가까운 월
+        var best = 0, bestDiff = Infinity;
+        monthLabels.forEach(function(label, i) {
+            var d = labelToDate(label);
+            var diff = Math.abs(d - now);
+            if (diff < bestDiff) { bestDiff = diff; best = i; }
+        });
+        return best;
+    }
+
+    /* 접수차수에 포함된 월(1~12)과 로드된 monthLabels 중 어느 인덱스에 해당하는지
+       — 여러 연도에 같은 월이 있으면 오늘과 가장 가까운 슬라이스 선택 */
+    function monthIdxForAccessMonth(roundMonth) {
+        if (!roundMonth || roundMonth < 1 || roundMonth > 12) return -1;
+        var now = new Date();
+        var best = -1;
+        var bestDist = Infinity;
+        for (var i = 0; i < monthLabels.length; i++) {
+            var d = labelToDate(monthLabels[i]);
+            if (!d || d.getTime() === 0) continue;
+            if (d.getMonth() + 1 !== roundMonth) continue;
+            var dist = Math.abs(d - now);
+            if (dist < bestDist) { bestDist = dist; best = i; }
+        }
+        return best;
+    }
+
+    function updateBadge() {
+        var b = document.getElementById('scheduleMonthBadge');
+        if (b) b.textContent = scheduleMonth ? scheduleMonth + ' 기준' : '일정 없음';
+    }
+
+    /* ─────────────────────────────────────────
+       CSV 로드
+    ───────────────────────────────────────── */
+    async function loadCSV() {
+        var loading = document.getElementById('loadingMessage');
+        var initial = document.getElementById('initialMessage');
+        loading.style.display = 'block';
+        initial.style.display = 'none';
+        try {
+            var res = await fetch('MA위촉접수리스트_통합.csv?v=' + Date.now());
+            if (!res.ok) throw new Error('파일을 찾을 수 없습니다.');
+            var text = await res.text();
+            allData = text.trim().split('\n').slice(1).map(function(line) {
+                return line.split(',').map(function(v) { return v.trim(); });
+            });
+            loading.style.display = 'none';
+            initial.style.display = 'block';
+        } catch(err) {
+            loading.style.display = 'none';
+            var el = document.getElementById('errorMessage');
+            el.style.display = 'block';
+            el.textContent = '오류: ' + err.message;
+        }
+    }
+
+    /* ─────────────────────────────────────────
+       테이블 필터링 + 최근차수 뱃지 + 정렬
+       — 보험사별 그룹화 유지 + 그룹 내 (월, 차수) 정렬
+    ───────────────────────────────────────── */
+    function setSearchResultsUi(hasSabunResults) {
+        var box = document.getElementById('searchBox');
+        var hint = document.getElementById('resultInfoHint');
+        if (box) box.classList.toggle('search-box--has-results', !!hasSabunResults);
+        if (hint) hint.classList.toggle('is-off', !hasSabunResults);
+        if (!hasSabunResults) setMobileSearchSummary('');
+    }
+
+    /* 모바일 전용: "○○○ 보험사 위촉접수리스트를 조회합니다." 안내 (모바일에서만 노출 — CSS 제어) */
+    function setMobileSearchSummary(name) {
+        var el = document.getElementById('mobileSearchSummary');
+        if (!el) return;
+        var nm = String(name || '').trim();
+        if (!nm) {
+            el.textContent = '';
+            el.removeAttribute('data-active');
+            return;
+        }
+        el.innerHTML = '<strong>' + escapeHtml(nm) + '</strong> 보험사 위촉접수리스트를 조회합니다.';
+        el.setAttribute('data-active', '1');
+    }
+
+    function filterTable(opts) {
+        opts = opts || {};
+        var skipAnalytics = !!opts.skipAnalytics;
+        var val = document.getElementById('searchInput').value.trim().toLowerCase();
+        var container = document.getElementById('tableContainer');
+        var initial   = document.getElementById('initialMessage');
+        var body      = document.getElementById('tableBody');
+        if (!val) {
+            var coEl = document.getElementById('companyFilterInput');
+            if (coEl) coEl.value = '';
+            setSearchResultsUi(false);
+            container.style.display = 'none';
+            initial.style.display = 'block';
+            document.getElementById('resultCount').textContent = '0';
+            return;
+        }
+
+        var bySabun = allData.filter(function(row) { return row[4] && row[4].toLowerCase() === val; });
+        initial.style.display = 'none';
+        container.style.display = 'block';
+        body.innerHTML = '';
+
+        if (bySabun.length === 0) {
+            setSearchResultsUi(false);
+            body.innerHTML = '<tr><td colspan="8" class="no-results">검색 결과가 없습니다.</td></tr>';
+            document.getElementById('resultCount').textContent = '0';
+            if (!skipAnalytics) trackSabunSearchEvent(0, val.length);
+            return;
+        }
+
+        setSearchResultsUi(true);
+        var sabunName = '';
+        for (var ni = 0; ni < bySabun.length; ni++) {
+            if (bySabun[ni][5]) { sabunName = bySabun[ni][5]; break; }
+        }
+        setMobileSearchSummary(sabunName);
+        var coQ = (document.getElementById('companyFilterInput') && document.getElementById('companyFilterInput').value.trim().toLowerCase()) || '';
+        var filtered = coQ
+            ? bySabun.filter(function(row) {
+                var raw = String(row[0] || '').toLowerCase();
+                var disp = formatCompanyDisplayName(row[0] || '').toLowerCase();
+                return raw.indexOf(coQ) >= 0 || disp.indexOf(coQ) >= 0;
+            })
+            : bySabun.slice();
+
+        if (filtered.length === 0) {
+            body.innerHTML = '<tr><td colspan="8" class="no-results">해당 보험사 조건에 맞는 행이 없습니다.</td></tr>';
+            document.getElementById('resultCount').textContent = '0';
+            if (!skipAnalytics) trackSabunSearchEvent(0, val.length);
+            return;
+        }
+
+        // ── 보험사 등장 순서 보존 (그룹화)
+        var companyOrder = {};
+        var orderIdx = 0;
+        filtered.forEach(function(row) {
+            var co = row[0] || '';
+            if (!(co in companyOrder)) companyOrder[co] = orderIdx++;
+        });
+
+        // ── 보험사별 "최신" 키 계산 (월 가중치 × 100 + 차수)
+        var latestKey = {};
+        filtered.forEach(function(row) {
+            var co = row[0] || '';
+            var k = sortKey(row[1]);
+            if (latestKey[co] === undefined || k > latestKey[co]) latestKey[co] = k;
+        });
+
+        // ── 정렬: 보험사 그룹 → 그룹 내 (월, 차수) 내림/오름차순
+        var sign = sortDesc ? -1 : 1;
+        filtered.sort(function(a, b) {
+            var coDiff = (companyOrder[a[0]||''] - companyOrder[b[0]||'']);
+            if (coDiff !== 0) return coDiff;
+            return sign * (sortKey(a[1]) - sortKey(b[1]));
+        });
+
+        filtered.forEach(function(row) {
+            var tr = document.createElement('tr');
+            var isLatest = (sortKey(row[1]) === latestKey[row[0] || '']);
+            var badgeClass = isLatest ? 'badge-round badge-latest' : 'badge-round badge-old';
+
+            var cells = row.map(function(c, idx) {
+                if (idx === 1) {
+                    return '<td><span class="' + badgeClass + '">' + formatRound(c) + '</span></td>';
+                }
+                if (idx === 0) {
+                    return '<td>' + escapeHtml(formatCompanyDisplayName(c)) + '</td>';
+                }
+                return '<td>' + (c || '') + '</td>';
+            }).join('');
+
+            /* 인라인 onclick 대신 data-* + 위임: CSV에 < " 등이 있어도 버튼이 깨지지 않음 */
+            tr.innerHTML = cells + '<td><button type="button" class="schedule-btn" aria-label="인사일정">📅</button></td>';
+            tr.dataset.scheduleCo = encodeURIComponent(row[0] || '');
+            tr.dataset.scheduleRound = encodeURIComponent(row[1] || '');
+            tr.dataset.scheduleSabun = encodeURIComponent(row[4] || '');
+            tr.dataset.scheduleName = encodeURIComponent(row[5] || '');
+            body.appendChild(tr);
+        });
+
+        document.getElementById('resultCount').textContent = filtered.length;
+        if (!skipAnalytics) trackSabunSearchEvent(filtered.length, val.length);
+    }
+
+    /* 헤더 클릭 → 정렬 방향 토글 (▼ 최근 위 / ▲ 오래된 위) */
+    function toggleSort() {
+        sortDesc = !sortDesc;
+        var arrow = document.getElementById('sortArrow');
+        if (arrow) arrow.textContent = sortDesc ? '▼' : '▲';
+        // 검색 결과가 표시 중이면 즉시 재정렬
+        if (document.getElementById('tableContainer').style.display !== 'none') {
+            filterTable({ skipAnalytics: true });
+        }
+    }
+
+    /* 접수차수 문자열에서 (월, 차수) 추출
+       지원 형식:
+         "04월 02일", "4월2일", "０４월０２일" → 월·차(구형: 일자 자리 = 차수)
+         "4월3차", "05월1차"                    → 월·차
+         "4-3차", "5-1URL"                      → 월·차
+         문자열 앞이 아니어도 첫 "N월M일/차" 매칭                           */
+    function normalizeRoundDigits(s) {
+        return String(s).replace(/[\uff10-\uff19]/g, function(ch) {
+            return String.fromCharCode(ch.charCodeAt(0) - 0xff10 + 0x30);
+        });
+    }
+    function parseRoundDetail(str) {
+        if (!str) return { month: 0, round: 0 };
+        var s = normalizeRoundDigits(String(str).trim());
+        s = s.replace(/[\s\u00a0\u1680\u2000-\u200a\u202f\u205f\u3000]+/g, '');
+
+        var pJ = s.match(/(\d{1,2})월(\d{1,2})(?:일|차)/);
+        if (pJ) return { month: +pJ[1], round: +pJ[2] };
+
+        var p3 = s.match(/(\d{1,2})[-_/](\d{1,2})/);
+        if (p3) return { month: +p3[1], round: +p3[2] };
+
+        var nums = s.match(/(\d+)/g);
+        if (nums && nums.length >= 2) return { month: +nums[0], round: +nums[1] };
+        if (nums && nums.length === 1) return { month: 0,         round: +nums[0] };
+        return { month: 0, round: 0 };
+    }
+
+    /* 현재 월 기준 가중치 (큰 값 = 최근)
+       — ±6개월 윈도우 보정으로 연도 경계(12월 ↔ 1월) 자연스럽게 처리          */
+    function getMonthWeight(month) {
+        if (!month) return -999;
+        var nowMonth = new Date().getMonth() + 1; // 1..12
+        var diff = month - nowMonth;
+        if (diff > 6)       diff -= 12;
+        else if (diff < -6) diff += 12;
+        return diff; // 0=현재월, +N=미래, -N=과거
+    }
+
+    /* 정렬 키: 월 가중치를 우선, 차수는 보조 (큰 값 = 최근) */
+    function sortKey(roundStr) {
+        var d = parseRoundDetail(roundStr);
+        return getMonthWeight(d.month) * 100 + d.round;
+    }
+
+    /* 표시용 정규화: 다양한 원본 표기를 "MM월 NN차" 로 통일
+       — "04월 02일"·"4월2일" → "04월 02차" / "4월3차" → "04월 03차"
+       — "5-1URL" → "05월 01차 URL" (영문 보조표기 보존)
+       — 파싱이 어긋나도 본문에 "N월 M일"이 있으면 모두 "N월 M차"로 치환   */
+    function pad2(n) { n = parseInt(n, 10) || 0; return (n < 10 ? '0' : '') + n; }
+    function formatRound(str) {
+        if (!str) return '';
+        var raw = String(str).trim();
+        var d = parseRoundDetail(raw);
+        var out = '';
+        if (d.month >= 1 && d.month <= 12 && d.round >= 1) {
+            out = pad2(d.month) + '월 ' + pad2(d.round) + '차';
+            var extra = raw.match(/[A-Za-z]+/g);
+            if (extra && extra.length) out += ' ' + extra.join('');
+            return out;
+        }
+        var vis = raw.replace(/(\d{1,2})\s*월\s*(\d{1,2})\s*일/g, function(_, a, b) {
+            return pad2(parseInt(a, 10)) + '월 ' + pad2(parseInt(b, 10)) + '차';
+        });
+        vis = vis.replace(/(\d{1,2})월(\d{1,2})일/g, function(_, a, b) {
+            return pad2(parseInt(a, 10)) + '월 ' + pad2(parseInt(b, 10)) + '차';
+        });
+        if (vis !== raw) return vis;
+        return raw;
+    }
+
+    function scheduleVal(v) {
+        var t = String(v == null ? '' : v).trim();
+        return t ? t : '미정';
+    }
+
+    /* 📅 개별 일정: 고정 URL 선제출 대상 보험사 (CSV 원본명 기준) */
+    function isPreSubmitFixedUrlCompany(co) {
+        var c = String(co || '').trim();
+        if (c === '메트라이프') return true;
+        if (c === '신한생명' || c === '신한라이프') return true;
+        if (c === 'KB라이프' || c === 'KB라이프생명') return true;
+        if (c === '하나생명') return true;
+        return false;
+    }
+
+    /* 표·안내 문구: 선제출 고정 URL 보험사는 URL발송 칸을 "고정URL"로 통일 */
+    function displayUrlSendForCompany(companyRaw, rawUrlValue) {
+        if (isPreSubmitFixedUrlCompany(companyRaw)) return '고정URL';
+        var v = String(rawUrlValue == null ? '' : rawUrlValue).trim();
+        return v ? v : '-';
+    }
+
+    /* 인사일정 JSON 키 접두어 (CSV·JSON 보험사명과 실제 키 IM라이프_1차 등 정합) */
+    function scheduleLookupPrefix(co) {
+        var c = String(co || '').trim();
+        if (c === 'M라이프' || c === 'IM라이프') return 'IM라이프';
+        if (c === '신한생명' || c === '신한라이프') return '신한라이프';
+        if (c === '농협생명' || c === 'NH농협생명') return 'NH농협생명';
+        if (c === 'IBK생명' || c === 'IBK연금') return 'IBK연금';
+        if (c === 'KB라이프' || c === 'KB라이프생명') return 'KB라이프생명';
+        return c;
+    }
+
+    /* 화면 표기용 보험사명 (전체일정·검색표·개별일정 상단 등) */
+    function formatCompanyDisplayName(co) {
+        var c = String(co || '').trim();
+        if (c === 'M라이프' || c === 'IM라이프') return 'IM라이프';
+        if (c === '신한라이프' || c === '신한생명') return '신한라이프';
+        if (c === 'NH농협생명' || c === '농협생명') return 'NH농협생명';
+        if (c === 'IBK연금' || c === 'IBK생명') return 'IBK생명';
+        if (c === 'KB라이프' || c === 'KB라이프생명') return 'KB라이프생명';
+        return c;
+    }
+
+    /* 일정 안내 문구용 날짜: 4/28, 5/6 형태로 짧게 (미정·고정URL 등은 그대로) */
+    function formatNarrativeDate(v) {
+        var t = String(v == null ? '' : v).trim();
+        if (!t || t === '-') return '미정';
+        if (/미정/i.test(t)) return '미정';
+        if (t === '고정URL') return '고정 URL';
+        var slash = t.match(/^(\d{1,2})\/(\d{1,2})/);
+        if (slash) return parseInt(slash[1], 10) + '/' + parseInt(slash[2], 10);
+        var k = t.match(/(\d{1,2})\s*월\s*(\d{1,2})\s*일?/);
+        if (k) return parseInt(k[1], 10) + '/' + parseInt(k[2], 10);
+        return t;
+    }
+
+    /* 검색 행 기준 동적 안내 문구 (HTML 이스케이프) — 예: 삼성생명 위촉 URL은 5/6에 발송되고 5/7까지 제출 시 5/14에 위촉 예정입니다. */
+    function buildScheduleNarrativeHtml(company, urlSend, agreeDeadline, wic) {
+        var co = escapeHtml(String(company || ''));
+        var u = escapeHtml(formatNarrativeDate(String(urlSend || '미정')));
+        var a = escapeHtml(formatNarrativeDate(String(agreeDeadline || '미정')));
+        var w = escapeHtml(formatNarrativeDate(String(wic || '미정')));
+        return '<strong>' + co + '</strong> 위촉 URL은 <strong>' + u + '</strong>에 발송되고 '
+            + '<strong>' + a + '</strong>까지 제출 시 <strong>' + w + '</strong>에 위촉 예정입니다.';
+    }
+
+    /* 선제출·고정 URL 보험사 */
+    function buildScheduleNarrativeHtmlPreSubmit(companyDisplay, agreeDeadline, wic) {
+        var co = escapeHtml(String(companyDisplay || ''));
+        var a = escapeHtml(formatNarrativeDate(String(agreeDeadline || '미정')));
+        var w = escapeHtml(formatNarrativeDate(String(wic || '미정')));
+        return '<strong>' + co + '</strong> 위촉은 고정 URL로 진행되며, <strong>' + a + '</strong>까지 제출 시 <strong>' + w + '</strong>에 위촉 예정입니다.';
+    }
+
+    /* ─────────────────────────────────────────
+       개별 일정 모달
+       — 전 월 병합 표 + 접수차수 N차 행 시각 강조(문구에는 '행 강조' 미표기)
+       — 상단 동적 안내 문구는 buildScheduleNarrativeHtml
+    ───────────────────────────────────────── */
+    function showSchedule(company, accessRoundRaw, sabun, name) {
+        if (accessRoundRaw === undefined) accessRoundRaw = '';
+        if (sabun === undefined) sabun = '';
+        if (name === undefined) name = '';
+        var rd = parseRoundDetail(accessRoundRaw);
+        var focusRound = rd.round > 0 ? rd.round : 0;
+        var lookupCo = scheduleLookupPrefix(company);
+        var displayCo = formatCompanyDisplayName(company);
+
+        /* 접수차수의 월 → 그 달 JSON을 표·뱃지·전체일정 인덱스의 기준으로 사용 */
+        var preferIdx = -1;
+        if (rd.month >= 1 && rd.month <= 12 && monthLabels.length) {
+            preferIdx = monthIdxForAccessMonth(rd.month);
+            if (preferIdx >= 0) {
+                currentMonthIdx = preferIdx;
+                scheduleMonth = monthLabels[preferIdx] || scheduleMonth;
+                updateBadge();
             }
         }
 
-        // 테이블 필터링 및 렌더링
-        function filterTable() {
-            const val = document.getElementById('searchInput').value.trim().toLowerCase();
-            const container = document.getElementById('tableContainer');
-            const initial = document.getElementById('initialMessage');
-            const body = document.getElementById('tableBody');
-            
-            if (!val) {
-                container.style.display = 'none';
-                initial.style.display = 'block';
-                document.getElementById('resultCount').textContent = '0';
-                return;
-            }
-
-            // 사번(인덱스 4) 기준 필터링
-            const filtered = allData.filter(row => row[4] && row[4].toLowerCase() === val);
-            
-            initial.style.display = 'none';
-            container.style.display = 'block';
-            body.innerHTML = '';
-
-            if (filtered.length === 0) {
-                body.innerHTML = `<tr><td colspan="7" class="no-results">검색 결과가 없습니다.</td></tr>`;
+        document.getElementById('modalTitle').textContent = '📅 ' + displayCo + ' 인사일정';
+        var preNotice = document.getElementById('modalPreSubmitNotice');
+        if (preNotice) {
+            if (isPreSubmitFixedUrlCompany(company)) {
+                preNotice.textContent = '선제출 보험사로 고정URL에서 위촉서류 제출 후 신청서 발송해주셔야 합니다.';
+                preNotice.hidden = false;
             } else {
-                filtered.forEach(row => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = row.map(cell => `<td>${cell || ''}</td>`).join('');
-                    body.appendChild(tr);
-                });
+                preNotice.textContent = '';
+                preNotice.hidden = true;
             }
-            document.getElementById('resultCount').textContent = filtered.length;
+        }
+        var hint = document.getElementById('modalScheduleHint');
+
+        var body = document.getElementById('modalBody');
+        body.innerHTML = '';
+        var hasData = false;
+
+        /* 표: 같은 키(보험사_N차)는 여러 월 JSON에 있을 수 있음 — 접수차수 월을 먼저 채우고 나머지만 타 월에서 보충
+           (예: 5월 JSON에 3차까지만 있고 4월 JSON에만 4차가 있으면, 이전에는 4차가 표에 붙었음 → 아래 cap으로 해당 월에 없는 상위 차수는 숨김) */
+        var combined = {};
+        if (preferIdx >= 0 && scheduleDataList[preferIdx]) {
+            var sdPref = scheduleDataList[preferIdx];
+            for (var h0 = 1; h0 <= 6; h0++) {
+                var k0 = lookupCo + '_' + h0 + '차';
+                if (sdPref[k0]) combined[k0] = sdPref[k0];
+            }
+        }
+        scheduleDataList.forEach(function(sd, sdi) {
+            if (preferIdx >= 0 && sdi === preferIdx) return;
+            if (!sd) return;
+            for (var hi = 1; hi <= 6; hi++) {
+                var hk = lookupCo + '_' + hi + '차';
+                if (sd[hk] && !combined[hk]) combined[hk] = sd[hk];
+            }
+        });
+
+        /* 접수차수 월 JSON에 해당 보험사 행이 하나라도 있으면, 그 파일에 정의된 최대 차수까지만 표시(다음 달/전월의 더 큰 차수 번호 붙음 방지) */
+        var maxRoundInPreferred = 0;
+        var hasCompanyInPreferred = false;
+        if (preferIdx >= 0 && scheduleDataList[preferIdx]) {
+            var sdCap = scheduleDataList[preferIdx];
+            for (var jc = 1; jc <= 6; jc++) {
+                if (sdCap[lookupCo + '_' + jc + '차']) {
+                    hasCompanyInPreferred = true;
+                    maxRoundInPreferred = jc;
+                }
+            }
         }
 
-        function refreshData() {
-            document.getElementById('searchInput').value = '';
-            loadCSV();
+        /* 안내 문구: 접수차수 N차 행 우선, 없으면 첫 일정 행 */
+        var pickS = null;
+        if (focusRound && combined[lookupCo + '_' + focusRound + '차']) {
+            pickS = combined[lookupCo + '_' + focusRound + '차'];
+        } else {
+            for (var pi = 1; pi <= 6; pi++) {
+                if (combined[lookupCo + '_' + pi + '차']) {
+                    pickS = combined[lookupCo + '_' + pi + '차'];
+                    break;
+                }
+            }
         }
 
-        window.onload = loadCSV;
-    </script>
+        if (hint) {
+            if (pickS && (sabun || name || company)) {
+                hint.innerHTML = isPreSubmitFixedUrlCompany(company)
+                    ? buildScheduleNarrativeHtmlPreSubmit(
+                        displayCo,
+                        scheduleVal(pickS['전자동의마감']),
+                        scheduleVal(pickS['위촉일'])
+                    )
+                    : buildScheduleNarrativeHtml(
+                        displayCo,
+                        scheduleVal(pickS['URL발송']),
+                        scheduleVal(pickS['전자동의마감']),
+                        scheduleVal(pickS['위촉일'])
+                    );
+                hint.hidden = false;
+            } else if (!pickS && (sabun || name || company)) {
+                hint.innerHTML = '해당 접수에 맞는 인사일정 데이터가 없습니다. 전체일정 또는 IIMS를 확인해 주세요.';
+                hint.hidden = false;
+            } else {
+                hint.innerHTML = '';
+                hint.hidden = true;
+            }
+        }
+
+        for (var i = 1; i <= 6; i++) {
+            var s = combined[lookupCo + '_' + i + '차'];
+            if (!s) continue;
+            if (hasCompanyInPreferred && i > maxRoundInPreferred) continue;
+            var tr = document.createElement('tr');
+            if (focusRound && i === focusRound) tr.className = 'modal-row--focus';
+            tr.innerHTML = '<td>' + escapeHtml(String(s['차수'] || '')) + '</td><td>' + escapeHtml(String(s['서류마감FA']||'-')) + '</td><td>' + escapeHtml(displayUrlSendForCompany(company, s['URL발송'])) + '</td><td>' + escapeHtml(String(s['전자동의마감']||'-')) + '</td><td>' + escapeHtml(String(s['위촉일']||'-')) + '</td>';
+            body.appendChild(tr);
+            hasData = true;
+        }
+        if (!hasData) body.innerHTML = '<tr><td colspan="5" class="modal-no-data">일정 데이터가 없습니다.</td></tr>';
+
+        document.getElementById('scheduleModal').classList.add('active');
+        if (hasData && focusRound) {
+            var focusTr = body.querySelector('tr.modal-row--focus');
+            if (focusTr) setTimeout(function() { focusTr.scrollIntoView({ block: 'nearest', inline: 'nearest' }); }, 0);
+        }
+    }
+
+    function escapeHtml(str) {
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    /* ─────────────────────────────────────────
+       전체일정 모달 (월 전환 — 동적 월 수)
+    ───────────────────────────────────────── */
+    function showAllSchedule() {
+        if (scheduleDataList.length === 0) {
+            alert('인사일정 데이터를 불러오지 못했습니다.');
+            return;
+        }
+        /* 전체일정 확인은 항상 로드된 가장 최근(가장 큰) 월로 시작 — 이전 📅 클릭 영향 받지 않음 */
+        currentMonthIdx = scheduleDataList.length - 1;
+        currentFilter = '전체';
+        renderAllModal();
+        document.getElementById('allScheduleModal').classList.add('active');
+    }
+
+    function changeMonth(dir) {
+        var newIdx = currentMonthIdx + dir;
+        if (newIdx < 0 || newIdx >= scheduleDataList.length) return;
+        currentMonthIdx = newIdx;
+        currentFilter = '전체';
+        renderAllModal();
+    }
+
+    function setMonthIdx(idx) {
+        if (idx < 0 || idx >= scheduleDataList.length) return;
+        currentMonthIdx = idx;
+        currentFilter = '전체';
+        renderAllModal();
+    }
+
+    function renderAllModal() {
+        var sd = scheduleDataList[currentMonthIdx];
+        if (!sd) { alert('해당 월 인사일정 데이터가 없습니다.'); return; }
+
+        document.getElementById('allModalTitle').textContent = '📋 보험사 전체 인사일정';
+        document.getElementById('allModalMonthLabel').textContent = monthLabels[currentMonthIdx] || '';
+
+        // ── 방향키 버튼 활성/비활성
+        document.getElementById('prevMonthBtn').disabled = (currentMonthIdx === 0);
+        document.getElementById('nextMonthBtn').disabled = (currentMonthIdx >= scheduleDataList.length - 1);
+
+        // ── 도트를 월 수에 맞게 동적 생성
+        var dotWrap = document.getElementById('monthDotWrap');
+        dotWrap.innerHTML = '';
+        monthLabels.forEach(function(label, i) {
+            var dot = document.createElement('span');
+            dot.className = 'month-dot' + (i === currentMonthIdx ? ' active' : '');
+            dot.title = label;
+            dot.onclick = (function(idx) { return function() { setMonthIdx(idx); }; })(i);
+            dotWrap.appendChild(dot);
+        });
+
+        // 보험사 목록 — JSON 객체 키(예: IM라이프_1차)에서 접두어만 추출해 조회 키와 일치시킴
+        var keys = Object.keys(sd);
+        var companies = [];
+        var seen = {};
+        keys.forEach(function(k) {
+            var m = k.match(/^(.+)_(\d+)차$/);
+            if (!m) return;
+            var base = m[1];
+            if (!seen[base]) { seen[base] = true; companies.push(base); }
+        });
+
+        // 필터 버튼
+        var filterEl = document.getElementById('allModalFilter');
+        filterEl.innerHTML = '';
+        ['전체'].concat(companies).forEach(function(name) {
+            var btn = document.createElement('button');
+            btn.className = 'filter-tag' + (name === currentFilter ? ' active' : '');
+            btn.textContent = name === '전체' ? '전체' : formatCompanyDisplayName(name);
+            btn.dataset.co = name;
+            btn.onclick = function() { applyFilter(this.dataset.co); };
+            filterEl.appendChild(btn);
+        });
+
+        // 테이블 본문
+        var body = document.getElementById('allModalBody');
+        body.innerHTML = '';
+
+        companies.forEach(function(company, ci) {
+            var colorClass = 'row-color-' + (ci % 8);
+
+            // 해당 보험사의 차수 목록
+            var rounds = [];
+            for (var i = 1; i <= 6; i++) {
+                var s = sd[company + '_' + i + '차'];
+                if (s) rounds.push({ round: i, data: s });
+            }
+            if (rounds.length === 0) return;
+
+            var maxRound = rounds[rounds.length - 1].round;
+            var first = true;
+
+            rounds.forEach(function(item) {
+                var isLatest = (item.round === maxRound);
+                var tr = document.createElement('tr');
+                tr.className = colorClass + (isLatest ? ' latest-row' : ' old-row');
+                tr.dataset.company = company;
+
+                var companyCell = first
+                    ? '<td style="font-weight:600;color:#0071E3;">' + escapeHtml(formatCompanyDisplayName(company)) + '</td>'
+                    : '<td></td>';
+
+                var roundCell = isLatest
+                    ? '<td><span class="badge-round badge-latest">' + item.data['차수'] + '</span></td>'
+                    : '<td><span class="badge-round badge-old">' + item.data['차수'] + '</span></td>';
+
+                tr.innerHTML = companyCell + roundCell
+                    + '<td>' + (item.data['서류마감FA']||'-') + '</td>'
+                    + '<td>' + escapeHtml(displayUrlSendForCompany(company, item.data['URL발송'])) + '</td>'
+                    + '<td>' + (item.data['전자동의마감']||'-') + '</td>'
+                    + '<td>' + (item.data['위촉일']||'-') + '</td>';
+
+                body.appendChild(tr);
+                first = false;
+            });
+        });
+
+        applyFilter(currentFilter);
+    }
+
+    function applyFilter(name) {
+        currentFilter = name;
+        document.querySelectorAll('.filter-tag').forEach(function(btn) {
+            var key = btn.dataset.co != null && btn.dataset.co !== '' ? btn.dataset.co : btn.textContent;
+            btn.classList.toggle('active', key === name);
+        });
+        document.querySelectorAll('#allModalBody tr').forEach(function(tr) {
+            if (name === '전체' || tr.dataset.company === name) {
+                tr.classList.remove('hidden-row');
+            } else {
+                tr.classList.add('hidden-row');
+            }
+        });
+    }
+
+    /* ─────────────────────────────────────────
+       모달 닫기 / 키보드 이벤트
+    ───────────────────────────────────────── */
+    function showPreSubmitUrlModal() { document.getElementById('preSubmitUrlModal').classList.add('active'); }
+    function showUsage() { document.getElementById('usageModal').classList.add('active'); }
+    function showReadme() { document.getElementById('readmeModal').classList.add('active'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            ['scheduleModal','preSubmitUrlModal','usageModal','readmeModal','allScheduleModal'].forEach(closeModal);
+        }
+        // 전체일정 모달이 열려있을 때 방향키로 월 전환
+        if (document.getElementById('allScheduleModal').classList.contains('active')) {
+            if (e.key === 'ArrowLeft')  changeMonth(-1);
+            if (e.key === 'ArrowRight') changeMonth(1);
+        }
+    });
+
+    /* ─────────────────────────────────────────
+       일반 사용자용 소스보기 차단(완전 보호 아님 — 비개발 사용자 대상)
+       — 우클릭(컨텍스트 메뉴) 차단
+       — F12 / Ctrl+U / Ctrl+S / Ctrl+Shift+I / Ctrl+Shift+J / Ctrl+Shift+C 차단
+       — 입력칸에서는 우클릭 허용(붙여넣기 등 사용성 유지)
+    ───────────────────────────────────────── */
+    document.addEventListener('contextmenu', function(e) {
+        var t = e.target;
+        if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || (t.isContentEditable))) return;
+        e.preventDefault();
+    });
+    document.addEventListener('keydown', function(e) {
+        var key = (e.key || '').toLowerCase();
+        if (e.key === 'F12') { e.preventDefault(); return; }
+        if ((e.ctrlKey || e.metaKey) && !e.shiftKey && (key === 'u' || key === 's')) {
+            e.preventDefault();
+            return;
+        }
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && (key === 'i' || key === 'j' || key === 'c')) {
+            e.preventDefault();
+            return;
+        }
+    });
+
+    /* 사번·보험사 입력 및 목록 초기화 + CSV·일정 다시 로드 */
+    function resetSabunSearch() {
+        document.getElementById('searchInput').value = '';
+        var coIn = document.getElementById('companyFilterInput');
+        if (coIn) coIn.value = '';
+        setSearchResultsUi(false);
+        document.getElementById('tableContainer').style.display = 'none';
+        document.getElementById('resultCount').textContent = '0';
+        var initial = document.getElementById('initialMessage');
+        if (initial) initial.style.display = 'block';
+        loadCSV();
+        loadSchedule();
+    }
+
+    /* 보험사 조건만 해제 → 현재 사번 기준 전체 행 다시 표시 */
+    function resetCompanyFilter() {
+        var coIn = document.getElementById('companyFilterInput');
+        if (coIn) coIn.value = '';
+        var val = document.getElementById('searchInput').value.trim();
+        if (val) filterTable({ skipAnalytics: true });
+    }
+
+    /* 검색 결과 표: 일정 버튼 (인라인 onclick 금지 — HTML 파손 방지) */
+    function bindScheduleButtonDelegation() {
+        var tb = document.getElementById('tableBody');
+        if (!tb || tb._scheduleClickBound) return;
+        tb._scheduleClickBound = true;
+        tb.addEventListener('click', function(ev) {
+            var t = ev.target;
+            if (t.nodeType !== 1) t = t.parentElement;
+            if (!t || !t.closest) return;
+            var btn = t.closest('button.schedule-btn');
+            if (!btn || !tb.contains(btn)) return;
+            var tr = btn.closest('tr');
+            if (!tr || tr.dataset.scheduleCo === undefined) return;
+            var co = '';
+            var rd = '';
+            var sb = '';
+            var nm = '';
+            try {
+                co = decodeURIComponent(tr.dataset.scheduleCo);
+                rd = decodeURIComponent(tr.dataset.scheduleRound || '');
+                sb = decodeURIComponent(tr.dataset.scheduleSabun || '');
+                nm = decodeURIComponent(tr.dataset.scheduleName || '');
+            } catch (err) { return; }
+            showSchedule(co, rd, sb, nm);
+        });
+    }
+
+    window.onload = function() {
+        bindScheduleButtonDelegation();
+        loadCSV();
+        loadSchedule();
+    };
+</script>
 </body>
 </html>
