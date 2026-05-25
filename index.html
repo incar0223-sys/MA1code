@@ -11,6 +11,11 @@
             --font-family:    "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, "Malgun Gothic", "맑은 고딕", sans-serif;
             --font-display:   "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, "Malgun Gothic", "맑은 고딕", sans-serif;
 
+            /* 인카 로고 네이비 (상단 로고 배경과 동일 톤) */
+            --logo-navy:      #0D2B7D;
+            --logo-navy-light:#1a3d96;
+            --logo-navy-dark: #0a2266;
+
             /* Brand — 3-state */
             --brand:          #0071E3;
             --brand-hover:    #0076DF;
@@ -143,43 +148,58 @@
             align-items: center;
             gap: 8px;
         }
-        /* 상단·검색: 애플 기기 느낌 메탈 그레이 (밝은 알루미늄 ↔ 살짝 진한 티타늄) */
+        /* 첫 사용 가이드: 상단 로고와 동일 네이비 톤 */
         .top-bar__usage {
             flex-shrink: 0;
             height: var(--top-bar-pill-h);
-            padding: 0 14px;
+            padding: 0 15px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            gap: 5px;
             box-sizing: border-box;
-            color: #2c2c2e;
-            border: 1px solid rgba(255, 255, 255, 0.45);
+            color: #FFFFFF;
+            border: 1px solid rgba(10, 34, 102, 0.5);
             border-radius: var(--radius-pill);
             cursor: pointer;
             font-size: 12px;
-            font-weight: 600;
+            font-weight: 700;
             font-family: var(--font-family);
-            background: linear-gradient(180deg, #e4e4e7 0%, #d2d2d6 22%, #bcbcc0 55%, #a8a8ae 100%);
+            letter-spacing: -0.02em;
+            white-space: nowrap;
+            background: linear-gradient(180deg, var(--logo-navy-light) 0%, var(--logo-navy) 42%, var(--logo-navy-dark) 100%);
             box-shadow:
-                var(--btn-shine),
+                var(--btn-shine-soft),
                 var(--btn-edge),
-                var(--btn-ambient),
-                var(--btn-raise);
+                0 2px 8px rgba(13, 43, 125, 0.28),
+                var(--btn-ambient);
             transition: filter 180ms var(--ease-out), transform 180ms var(--ease-out), box-shadow 180ms var(--ease-out);
         }
+        .top-bar__usage::before {
+            content: 'NEW';
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            line-height: 1;
+            padding: 3px 5px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.92);
+            color: var(--logo-navy);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
         .top-bar__usage:hover  {
-            filter: brightness(1.05);
+            filter: brightness(1.06);
             transform: translateY(-1px);
             box-shadow:
-                var(--btn-shine),
+                var(--btn-shine-soft),
                 var(--btn-edge),
-                var(--btn-ambient),
+                0 4px 12px rgba(13, 43, 125, 0.34),
                 var(--btn-raise-hover);
         }
         .top-bar__usage:active {
-            filter: brightness(0.93);
+            filter: brightness(0.94);
             transform: scale(0.97);
-            box-shadow: var(--btn-press), 0 1px 2px rgba(0, 0, 0, 0.06);
+            box-shadow: var(--btn-press), 0 1px 4px rgba(13, 43, 125, 0.22);
         }
         .top-bar__readme {
             flex-shrink: 0;
@@ -1018,7 +1038,8 @@
             }
             .title-br-mobile { display: inline; }
             .top-bar__warn { font-size: 11px; }
-            .top-bar__usage { padding: 0 10px; font-size: 11px; }
+            .top-bar__usage { padding: 0 10px; font-size: 10px; gap: 4px; }
+            .top-bar__usage::before { display: none; }
             .top-bar__readme { padding: 0 12px; font-size: 11px; }
             .container__controls { padding: 16px 14px 12px; }
             .container__results { padding: 10px 14px 20px; }
@@ -1313,7 +1334,7 @@
         <span class="top-bar__warn">★ 동양·총무코드 조회 불가</span>
     </div>
     <div class="top-bar__actions">
-        <button type="button" class="top-bar__usage" onclick="showUsage()">📋 사용법</button>
+        <button type="button" class="top-bar__usage" onclick="showUsage()" aria-label="처음 사용 가이드 열기">🎯 첫 사용 가이드</button>
         <button type="button" class="top-bar__readme" onclick="showReadme()">⚠️ 필독</button>
     </div>
 </header>
@@ -1477,7 +1498,7 @@
 <!-- 사용법 모달 -->
 <div id="usageModal" class="modal-overlay" onclick="if(event.target===this) closeModal('usageModal')">
     <div class="readme-modal-box usage-modal-box">
-        <div class="modal-title">📋 사용법 안내</div>
+        <div class="modal-title">🎯 첫 사용 가이드</div>
         <div class="readme-section" style="margin-bottom:0;">
             <ol>
                 <li>아래 입력창에 <b>사번 7자리</b> 입력 후 검색 버튼 클릭 또는 ENTER</li>
@@ -1800,7 +1821,16 @@
             return;
         }
 
-        if (typeof Tutorial !== 'undefined' && Tutorial.handleSearch(val, opts)) return;
+        if (typeof Tutorial !== 'undefined') {
+            if (Tutorial.isConfigReady && Tutorial.isConfigReady() && Tutorial.handleSearch(val, opts)) return;
+            if (Tutorial.isConfigReady && !Tutorial.isConfigReady() && Tutorial.tryDemoSearchAsync) {
+                Tutorial.tryDemoSearchAsync(val, opts).then(function(handled) {
+                    if (handled) return;
+                    filterTable(opts);
+                });
+                return;
+            }
+        }
 
         var bySabun = allData.filter(function(row) { return row[4] && row[4].toLowerCase() === val; });
         initial.style.display = 'none';
@@ -1816,6 +1846,10 @@
         }
 
         setSearchResultsUi(true);
+        var hintEl = document.getElementById('resultInfoHint');
+        if (hintEl) {
+            hintEl.textContent = '사번을 검색 후 보험사를 조회하세요 / 📅 버튼을 눌러 상세 인사일정을 확인하세요.';
+        }
         var sabunName = '';
         for (var ni = 0; ni < bySabun.length; ni++) {
             if (bySabun[ni][5]) { sabunName = bySabun[ni][5]; break; }
@@ -2390,8 +2424,12 @@
 
     /* 사번·보험사 입력 및 목록 초기화 + CSV·일정 다시 로드 */
     function resetSabunSearch() {
-        if (typeof Tutorial !== 'undefined') Tutorial.stop();
+        if (typeof Tutorial !== 'undefined' && Tutorial.isActive && Tutorial.isActive()) Tutorial.stop();
         document.getElementById('searchInput').value = '';
+        var hintReset = document.getElementById('resultInfoHint');
+        if (hintReset) {
+            hintReset.textContent = '사번을 검색 후 보험사를 조회하세요 / 📅 버튼을 눌러 상세 인사일정을 확인하세요.';
+        }
         var coIn = document.getElementById('companyFilterInput');
         if (coIn) coIn.value = '';
         setSearchResultsUi(false);

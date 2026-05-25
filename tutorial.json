@@ -16,6 +16,9 @@
   "bigoExamples": {
     "한화생명": "(4-2URL미제출)"
   },
+  "roundOverrides": {
+    "IM라이프": 1
+  },
   "steps": [
     {
       "id": "readme-first",

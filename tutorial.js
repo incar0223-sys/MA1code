@@ -5,7 +5,9 @@
     'use strict';
 
     var config = null;
+    var configPromise = null;
     var active = false;
+    var DEFAULT_RESULT_HINT = '사번을 검색 후 보험사를 조회하세요 / 📅 버튼을 눌러 상세 인사일정을 확인하세요.';
     var stepIndex = 0;
     var demoRows = [];
     var overlayEl = null;
@@ -65,6 +67,59 @@
         return best >= 1 ? best : 1;
     }
 
+    function ensureConfig() {
+        if (config) return Promise.resolve(config);
+        if (configPromise) return configPromise;
+        configPromise = fetch('tutorial.json?v=' + Date.now())
+            .then(function(res) {
+                if (!res.ok) throw new Error('tutorial.json을 불러올 수 없습니다.');
+                return res.json();
+            })
+            .then(function(json) {
+                config = json;
+                return config;
+            })
+            .catch(function(err) {
+                configPromise = null;
+                throw err;
+            });
+        return configPromise;
+    }
+
+    function isDemoSabun(val) {
+        if (!config || !config.demo || !config.demo.sabun) return false;
+        return String(val).trim().toLowerCase() === String(config.demo.sabun).trim().toLowerCase();
+    }
+
+    function getCompanyFilterQuery() {
+        var el = document.getElementById('companyFilterInput');
+        return el ? el.value.trim().toLowerCase() : '';
+    }
+
+    function filterDemoRowsForCompany(rows) {
+        var coQ = getCompanyFilterQuery();
+        if (!coQ) return rows;
+        var fmtCo = typeof formatCompanyDisplayName === 'function'
+            ? formatCompanyDisplayName
+            : function(c) { return c; };
+        return rows.filter(function(row) {
+            var raw = String(row.company || '').toLowerCase();
+            var disp = String(fmtCo(row.company || '')).toLowerCase();
+            return raw.indexOf(coQ) >= 0 || disp.indexOf(coQ) >= 0;
+        });
+    }
+
+    function setDemoResultHint(on) {
+        var hint = document.getElementById('resultInfoHint');
+        if (!hint) return;
+        if (on && config && config.demo) {
+            hint.textContent = config.demo.disclaimer || '※ 안내용 예시입니다.';
+            hint.classList.remove('is-off');
+            return;
+        }
+        hint.textContent = DEFAULT_RESULT_HINT;
+    }
+
     function buildDemoRows() {
         if (!config || !config.demo) return [];
         var idx = typeof closestMonthIdx === 'function' ? closestMonthIdx() : 0;
@@ -73,10 +128,12 @@
         var roundStr = function(r) { return pad2(monthNum) + '월 ' + pad2(r) + '차'; };
         var companies = config.companies || [];
         var bigoMap = config.bigoExamples || {};
+        var roundOverrides = config.roundOverrides || {};
         var demo = config.demo;
 
         return companies.map(function(co) {
-            var r = pickRoundForCompany(sd, co);
+            var override = roundOverrides[co];
+            var r = (override >= 1) ? parseInt(override, 10) : pickRoundForCompany(sd, co);
             return {
                 company: co,
                 round: roundStr(r),
@@ -439,12 +496,14 @@
 
     function renderDemoTable() {
         demoRows = buildDemoRows();
+        var visibleRows = filterDemoRowsForCompany(demoRows);
         var container = document.getElementById('tableContainer');
         var initial = document.getElementById('initialMessage');
         var body = document.getElementById('tableBody');
         if (!container || !body) return false;
 
         if (typeof setSearchResultsUi === 'function') setSearchResultsUi(true);
+        setDemoResultHint(true);
         if (typeof setMobileSearchSummary === 'function' && config.demo) {
             setMobileSearchSummary(config.demo.name);
         }
@@ -454,9 +513,15 @@
         body.innerHTML = '';
 
         if (demoRows.length === 0) {
-            body.innerHTML = '<tr><td colspan="8" class="no-results">튜토리얼용 일정 데이터를 불러오지 못했습니다. 인사일정 JSON을 확인해 주세요.</td></tr>';
+            body.innerHTML = '<tr><td colspan="8" class="no-results">예시 일정 데이터를 불러오지 못했습니다. 인사일정 JSON을 확인해 주세요.</td></tr>';
             document.getElementById('resultCount').textContent = '0';
             return false;
+        }
+
+        if (visibleRows.length === 0) {
+            body.innerHTML = '<tr><td colspan="8" class="no-results">해당 보험사 조건에 맞는 행이 없습니다.</td></tr>';
+            document.getElementById('resultCount').textContent = '0';
+            return true;
         }
 
         var fmtCo = typeof formatCompanyDisplayName === 'function'
@@ -464,9 +529,9 @@
             : function(c) { return c; };
         var esc = typeof escapeHtml === 'function' ? escapeHtml : function(s) { return s; };
 
-        demoRows.forEach(function(row, i) {
+        visibleRows.forEach(function(row, i) {
             var tr = document.createElement('tr');
-            tr.className = 'tutorial-demo-row';
+            tr.className = 'tutorial-demo-row demo-example-row';
             if (i === 0) tr.classList.add('tutorial-demo-row--first');
             tr.innerHTML =
                 '<td>' + esc(fmtCo(row.company)) + '</td>' +
@@ -484,7 +549,7 @@
             body.appendChild(tr);
         });
 
-        document.getElementById('resultCount').textContent = String(demoRows.length);
+        document.getElementById('resultCount').textContent = String(visibleRows.length);
         return true;
     }
 
@@ -745,7 +810,10 @@
         if (typeof setMobileSearchSummary === 'function') setMobileSearchSummary('');
 
         var hint = document.getElementById('resultInfoHint');
-        if (hint) hint.classList.add('is-off');
+        if (hint) {
+            hint.textContent = DEFAULT_RESULT_HINT;
+            hint.classList.add('is-off');
+        }
 
         var box = document.getElementById('searchBox');
         if (box) box.classList.remove('search-box--has-results');
@@ -770,6 +838,7 @@
     }
 
     function stop() {
+        var wasActive = active;
         active = false;
         stepIndex = 0;
         demoRows = [];
@@ -794,7 +863,7 @@
             closeModal('allScheduleModal');
             closeModal('preSubmitUrlModal');
         }
-        resetToMainScreen();
+        if (wasActive) resetToMainScreen();
     }
 
     function onEscape() {
@@ -805,18 +874,22 @@
     }
 
     function handleSearch(val) {
-        if (!active || !config || !config.demo) return false;
-        if (String(val).trim() !== String(config.demo.sabun).trim()) return false;
+        if (!isDemoSabun(val)) return false;
         renderDemoTable();
         return true;
+    }
+
+    function tryDemoSearchAsync(val, opts) {
+        if (!String(val || '').trim()) return Promise.resolve(false);
+        return ensureConfig()
+            .then(function() { return handleSearch(val, opts); })
+            .catch(function() { return false; });
     }
 
     async function start() {
         if (active) return;
         try {
-            var res = await fetch('tutorial.json?v=' + Date.now());
-            if (!res.ok) throw new Error('tutorial.json을 불러올 수 없습니다.');
-            config = await res.json();
+            await ensureConfig();
         } catch (e) {
             alert('튜토리얼을 시작할 수 없습니다.\n' + (e.message || e));
             return;
@@ -838,9 +911,22 @@
         start: start,
         stop: stop,
         handleSearch: handleSearch,
+        tryDemoSearchAsync: tryDemoSearchAsync,
+        ensureConfig: ensureConfig,
+        isConfigReady: function() { return !!config; },
+        isDemoSabun: isDemoSabun,
         onEscape: onEscape,
         isActive: function() { return active; }
     };
+
+    function preloadConfig() {
+        ensureConfig().catch(function() {});
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', preloadConfig);
+    } else {
+        preloadConfig();
+    }
 
     global.startTutorialFromUsage = function() {
         if (typeof closeModal === 'function') closeModal('usageModal');
