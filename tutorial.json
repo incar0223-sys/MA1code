@@ -1,0 +1,79 @@
+{
+  "version": 1,
+  "demo": {
+    "sabun": "1234567",
+    "name": "김인카",
+    "branchName": "튜토리얼사업단",
+    "branchCode": "00000",
+    "disclaimer": "※ 안내용 예시입니다. 실제 접수 데이터·실시간 연동이 아닙니다."
+  },
+  "companies": [
+    "한화생명",
+    "DB생명",
+    "IM라이프",
+    "교보생명"
+  ],
+  "bigoExamples": {
+    "한화생명": "(4-2URL미제출)"
+  },
+  "steps": [
+    {
+      "id": "readme-first",
+      "type": "readme",
+      "title": "⚠️ 먼저 필독",
+      "body": "위촉접수 리스트는 FA에게 그대로 배포하면 안 됩니다. <b>필독</b> 내용을 읽고 <b>확인</b>을 누른 뒤 다음으로 진행하세요."
+    },
+    {
+      "id": "sabun",
+      "target": "#searchBox",
+      "initialView": true,
+      "title": "① 사번 검색 (초기 화면)",
+      "body": "처음 화면에서 <b>사번 7자리</b>를 입력합니다. 예시 <b>{{demoSabun}}</b> ({{demoName}})이 입력되어 있습니다. <b>다음</b>을 누르면 검색 결과가 표시됩니다.",
+      "action": "demoSearch",
+      "prefillSabun": true
+    },
+    {
+      "id": "result-table",
+      "highlightUnion": [".result-info", "#tableContainer"],
+      "title": "② 검색 결과 (표 메뉴 포함)",
+      "body": "<b>{{demoName}}</b>님 예시입니다. <b>표 맨 위 메뉴(보험사·접수차수·비고·일정 등)</b>와 함께 <b>{{companyCount}}개 보험사</b>가 보입니다. {{monthLabel}} FA 마감 기준 접수 예시입니다. {{disclaimer}}"
+    },
+    {
+      "id": "company-search",
+      "target": "#searchInlineCompany",
+      "title": "③ 보험사 검색",
+      "body": "접수 보험사가 많을 때 <b>보험사</b> 칸에 일부만 입력해 해당 보험사만 좁혀 볼 수 있습니다. (ENTER 또는 검색 버튼)"
+    },
+    {
+      "id": "bigo",
+      "highlightMode": "rowFocus",
+      "rowTarget": "#tableBody tr.tutorial-demo-row--first",
+      "rowTargetFallback": "#tableBody tr.tutorial-demo-row",
+      "focusTarget": "td:nth-child(7)",
+      "title": "④ 비고",
+      "body": "<b>비고</b>(파란 칸)는 <b>이전 접수차수</b> 참고 메모입니다. (예: URL 미제출) <b>실시간 IIMS 연동이 아닙니다.</b> 빈 칸이면 특이사항 없음."
+    },
+    {
+      "id": "schedule-btn",
+      "highlightMode": "rowFocus",
+      "rowTarget": "#tableBody tr.tutorial-demo-row--first",
+      "rowTargetFallback": "#tableBody tr.tutorial-demo-row",
+      "focusTarget": ".schedule-btn",
+      "title": "⑤ 일정(📅)",
+      "body": "한 줄 전체를 보면서 <b>📅</b>(파란 표시)가 인사일정 버튼입니다. <b>다음</b>을 누르면 인사일정 팝업이 열립니다.",
+      "action": "openFirstSchedule"
+    },
+    {
+      "id": "schedule-modal",
+      "spotlight": "scheduleModal",
+      "title": "⑥ 인사일정 상세",
+      "body": "<b>{{monthLabel}}</b> 인사일정 팝업입니다. 위촉일·URL 발송일을 확인한 뒤, 아래 안내에서 <b>다음</b>을 누르면 튜토리얼 완료 안내로 넘어갑니다."
+    },
+    {
+      "id": "finish",
+      "type": "finish",
+      "title": "튜토리얼 완료",
+      "body": "이제 실제 <b>사번</b>으로 검색하여 사용하시면 됩니다.<br><br><b>닫기</b>를 누르면 튜토리얼이 종료되고 처음 화면으로 돌아갑니다."
+    }
+  ]
+}
