@@ -1334,7 +1334,7 @@
         <span class="top-bar__warn">★ 동양·총무코드 조회 불가</span>
     </div>
     <div class="top-bar__actions">
-        <button type="button" class="top-bar__usage" onclick="showUsage()" aria-label="처음 사용 가이드 열기">🎯 사용 가이드</button>
+        <button type="button" class="top-bar__usage" onclick="showUsage()" aria-label="사용 가이드 열기">🎯 사용 가이드</button>
         <button type="button" class="top-bar__readme" onclick="showReadme()">⚠️ 필독</button>
     </div>
 </header>
@@ -2038,6 +2038,25 @@
         return c;
     }
 
+    /* IM라이프: JSON 키가 IM라이프_* / M라이프_* 로 섞여 있을 수 있음 */
+    function scheduleKeyAliases(lookupCo) {
+        var c = String(lookupCo || '').trim();
+        if (c === 'IM라이프' || c === 'M라이프') return ['IM라이프', 'M라이프'];
+        return [c];
+    }
+    function scheduleRoundKey(prefix, roundNum) {
+        return prefix + '_' + roundNum + '차';
+    }
+    function getScheduleEntry(sd, lookupCo, roundNum) {
+        if (!sd) return null;
+        var aliases = scheduleKeyAliases(lookupCo);
+        for (var ai = 0; ai < aliases.length; ai++) {
+            var entry = sd[scheduleRoundKey(aliases[ai], roundNum)];
+            if (entry) return entry;
+        }
+        return null;
+    }
+
     /* 화면 표기용 보험사명 (전체일정·검색표·개별일정 상단 등) */
     function formatCompanyDisplayName(co) {
         var c = String(co || '').trim();
@@ -2125,19 +2144,23 @@
         /* 표: 같은 키(보험사_N차)는 여러 월 JSON에 있을 수 있음 — 접수차수 월을 먼저 채우고 나머지만 타 월에서 보충
            (예: 5월 JSON에 3차까지만 있고 4월 JSON에만 4차가 있으면, 이전에는 4차가 표에 붙었음 → 아래 cap으로 해당 월에 없는 상위 차수는 숨김) */
         var combined = {};
+        var canonPrefix = scheduleLookupPrefix(company);
         if (preferIdx >= 0 && scheduleDataList[preferIdx]) {
             var sdPref = scheduleDataList[preferIdx];
             for (var h0 = 1; h0 <= 6; h0++) {
-                var k0 = lookupCo + '_' + h0 + '차';
-                if (sdPref[k0]) combined[k0] = sdPref[k0];
+                var e0 = getScheduleEntry(sdPref, lookupCo, h0);
+                if (e0) combined[scheduleRoundKey(canonPrefix, h0)] = e0;
             }
         }
         scheduleDataList.forEach(function(sd, sdi) {
             if (preferIdx >= 0 && sdi === preferIdx) return;
             if (!sd) return;
             for (var hi = 1; hi <= 6; hi++) {
-                var hk = lookupCo + '_' + hi + '차';
-                if (sd[hk] && !combined[hk]) combined[hk] = sd[hk];
+                var ck = scheduleRoundKey(canonPrefix, hi);
+                if (!combined[ck]) {
+                    var eh = getScheduleEntry(sd, lookupCo, hi);
+                    if (eh) combined[ck] = eh;
+                }
             }
         });
 
@@ -2147,7 +2170,7 @@
         if (preferIdx >= 0 && scheduleDataList[preferIdx]) {
             var sdCap = scheduleDataList[preferIdx];
             for (var jc = 1; jc <= 6; jc++) {
-                if (sdCap[lookupCo + '_' + jc + '차']) {
+                if (getScheduleEntry(sdCap, lookupCo, jc)) {
                     hasCompanyInPreferred = true;
                     maxRoundInPreferred = jc;
                 }
@@ -2156,12 +2179,12 @@
 
         /* 안내 문구: 접수차수 N차 행 우선, 없으면 첫 일정 행 */
         var pickS = null;
-        if (focusRound && combined[lookupCo + '_' + focusRound + '차']) {
-            pickS = combined[lookupCo + '_' + focusRound + '차'];
+        if (focusRound && combined[scheduleRoundKey(canonPrefix, focusRound)]) {
+            pickS = combined[scheduleRoundKey(canonPrefix, focusRound)];
         } else {
             for (var pi = 1; pi <= 6; pi++) {
-                if (combined[lookupCo + '_' + pi + '차']) {
-                    pickS = combined[lookupCo + '_' + pi + '차'];
+                if (combined[scheduleRoundKey(canonPrefix, pi)]) {
+                    pickS = combined[scheduleRoundKey(canonPrefix, pi)];
                     break;
                 }
             }
@@ -2192,7 +2215,7 @@
         }
 
         for (var i = 1; i <= 6; i++) {
-            var s = combined[lookupCo + '_' + i + '차'];
+            var s = combined[scheduleRoundKey(canonPrefix, i)];
             if (!s) continue;
             if (hasCompanyInPreferred && i > maxRoundInPreferred) continue;
             var tr = document.createElement('tr');
