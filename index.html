@@ -2030,7 +2030,7 @@
     /* 인사일정 JSON 키 접두어 (CSV·JSON 보험사명과 실제 키 IM라이프_1차 등 정합) */
     function scheduleLookupPrefix(co) {
         var c = String(co || '').trim();
-        if (c === 'M라이프' || c === 'IM라이프') return 'IM라이프';
+        if (c === 'M라이프' || c === 'IM라이프' || c === 'iM라이프') return 'IM라이프';
         if (c === '신한생명' || c === '신한라이프') return '신한라이프';
         if (c === '농협생명' || c === 'NH농협생명') return 'NH농협생명';
         if (c === 'IBK생명' || c === 'IBK연금') return 'IBK연금';
@@ -2038,10 +2038,10 @@
         return c;
     }
 
-    /* IM라이프: JSON 키가 IM라이프_* / M라이프_* 로 섞여 있을 수 있음 */
+    /* IM라이프: JSON 키가 IM라이프_* / M라이프_* / iM라이프_* 로 섞여 있을 수 있음 */
     function scheduleKeyAliases(lookupCo) {
         var c = String(lookupCo || '').trim();
-        if (c === 'IM라이프' || c === 'M라이프') return ['IM라이프', 'M라이프'];
+        if (c === 'IM라이프' || c === 'M라이프' || c === 'iM라이프') return ['IM라이프', 'M라이프', 'iM라이프'];
         return [c];
     }
     function scheduleRoundKey(prefix, roundNum) {
@@ -2060,7 +2060,7 @@
     /* 화면 표기용 보험사명 (전체일정·검색표·개별일정 상단 등) */
     function formatCompanyDisplayName(co) {
         var c = String(co || '').trim();
-        if (c === 'M라이프' || c === 'IM라이프') return 'IM라이프';
+        if (c === 'M라이프' || c === 'IM라이프' || c === 'iM라이프') return 'IM라이프';
         if (c === '신한라이프' || c === '신한생명') return '신한라이프';
         if (c === 'NH농협생명' || c === '농협생명') return 'NH농협생명';
         if (c === 'IBK연금' || c === 'IBK생명') return 'IBK생명';
